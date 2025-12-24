@@ -156,26 +156,27 @@ export default function BudgetsPage() {
   });
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-5xl">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div className="container mx-auto p-6 space-y-4 max-w-5xl">
+      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
-          <p className="text-muted-foreground">Manage your monthly budgets.</p>
+          <p className="text-muted-foreground text-xs">Manage your monthly budgets.</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+          <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
             <Plus className="h-4 w-4" /> Create Budget
           </Button>
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
         <InputGroup className="w-full sm:w-[300px]">
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
           <InputGroupInput
             placeholder="Search budgets..."
+            className="text-xs"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -205,7 +206,7 @@ export default function BudgetsPage() {
       ) : (
         <ItemGroup>
           {filteredBudgets.map((budget) => (
-            <Item key={budget.id} variant="outline" className="justify-between">
+            <Item key={budget.id} variant="outline" size="xs" className="justify-between">
               <ItemMedia>
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
                   <Wallet className="h-5 w-5 text-muted-foreground" />

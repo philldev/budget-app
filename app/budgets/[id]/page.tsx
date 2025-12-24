@@ -210,8 +210,8 @@ export default function BudgetDetailPage({
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6 max-w-5xl">
-      <div className="flex flex-col gap-4">
+    <div className="container mx-auto p-6 space-y-4 max-w-5xl">
+      <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit">
           <ArrowLeft className="h-4 w-4" />
           <Link href="/budgets" className="text-sm font-medium">
@@ -219,15 +219,15 @@ export default function BudgetDetailPage({
           </Link>
         </div>
 
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
-            <p className="text-muted-foreground">
+            <p className="text-muted-foreground text-xs">
               Detailed view of your transactions.
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+            <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
               <Plus className="h-4 w-4" /> Add Transaction
             </Button>
           </div>
@@ -305,13 +305,14 @@ export default function BudgetDetailPage({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+      <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
         <InputGroup className="w-full sm:w-[300px]">
           <InputGroupAddon>
             <Search />
           </InputGroupAddon>
           <InputGroupInput
             placeholder="Search transactions..."
+            className="text-xs"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
@@ -329,6 +330,7 @@ export default function BudgetDetailPage({
               key={transaction.id}
               id={`transaction-${transaction.id}`}
               variant="outline"
+              size="xs"
               className={cn(
                 "justify-between transition-all duration-500",
                 highlightedId === transaction.id &&
