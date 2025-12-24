@@ -236,17 +236,17 @@ export default function BudgetDetailPage({
 
       <Card className="bg-muted/40 border-none shadow-none">
         <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
-          <div className="p-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="px-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background shadow-xs">
-                <Wallet className="h-5 w-5 text-primary" />
+              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
+                <Wallet className="h-8 w-8 text-primary" />
               </div>
               <div>
-                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                <p className="text-[10px] mb-1 uppercase tracking-wider font-bold text-muted-foreground">
                   Current Balance
                 </p>
-                <h2 className="text-2xl font-bold tracking-tight">
-                  ${balance.toLocaleString()}
+                <h2 className="text-4xl font-bold tracking-tight">
+                  $ {balance.toLocaleString()}
                 </h2>
               </div>
             </div>
