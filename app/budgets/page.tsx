@@ -9,7 +9,9 @@ import {
   Pencil,
   Trash2,
   Wallet,
+  Eye,
 } from "lucide-react";
+import Link from "next/link";
 import { Budget } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -210,7 +212,11 @@ export default function BudgetsPage() {
                 </div>
               </ItemMedia>
               <ItemContent>
-                <ItemTitle>{budget.name}</ItemTitle>
+                <ItemTitle>
+                  <Link href={`/budgets/${budget.id}`} className="hover:underline">
+                    {budget.name}
+                  </Link>
+                </ItemTitle>
                 <ItemDescription>
                   {MONTHS[budget.month - 1]} {budget.year}
                 </ItemDescription>
@@ -225,6 +231,12 @@ export default function BudgetsPage() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
                     <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem asChild>
+                      <Link href={`/budgets/${budget.id}`}>
+                        <Eye className="mr-2 h-4 w-4" />
+                        View Details
+                      </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => handleEdit(budget)}>
                       <Pencil className="mr-2 h-4 w-4" />
                       Edit

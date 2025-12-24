@@ -1,0 +1,389 @@
+"use client";
+
+import * as React from "react";
+import Link from "next/link";
+import {
+  ArrowLeft,
+  Plus,
+  Search,
+  MoreHorizontal,
+  Pencil,
+  Trash2,
+  TrendingUp,
+  TrendingDown,
+  DollarSign,
+  Wallet,
+} from "lucide-react";
+import { Budget, Transaction } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Item,
+  ItemGroup,
+  ItemContent,
+  ItemTitle,
+  ItemDescription,
+  ItemActions,
+  ItemMedia,
+} from "@/components/ui/item";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@/components/ui/field";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import { cn } from "@/lib/utils";
+
+// Mock data
+const MOCK_BUDGETS: Budget[] = [
+  { id: "1", name: "Personal Q1", month: 1, year: 2024 },
+  { id: "2", name: "Home Renovation", month: 3, year: 2024 },
+  { id: "3", name: "Vacation Fund", month: 6, year: 2024 },
+];
+
+const MOCK_TRANSACTIONS: Transaction[] = [
+  { id: "t1", budgetId: "1", name: "Salary", amount: 5000, type: "income", date: "2024-01-01" },
+  { id: "t2", budgetId: "1", name: "Rent", amount: 1500, type: "expense", date: "2024-01-02" },
+  { id: "t3", budgetId: "1", name: "Groceries", amount: 400, type: "expense", date: "2024-01-05" },
+];
+
+export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = React.use(params);
+  const budgetId = resolvedParams.id;
+
+  const [budget] = React.useState<Budget | undefined>(
+    MOCK_BUDGETS.find((b) => b.id === budgetId)
+  );
+
+  const [transactions, setTransactions] = React.useState<Transaction[]>(
+    MOCK_TRANSACTIONS.filter((t) => t.budgetId === budgetId)
+  );
+
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [editingTransaction, setEditingTransaction] = React.useState<Transaction | null>(null);
+
+  // Form State
+  const [formData, setFormData] = React.useState<Omit<Transaction, "id" | "budgetId" | "date">>({
+    name: "",
+    amount: 0,
+    type: "expense",
+  });
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      amount: 0,
+      type: "expense",
+    });
+    setEditingTransaction(null);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    setIsDialogOpen(open);
+    if (!open) resetForm();
+  };
+
+  const handleSave = () => {
+    if (editingTransaction) {
+      setTransactions((prev) =>
+        prev.map((t) =>
+          t.id === editingTransaction.id ? { ...t, ...formData } : t
+        )
+      );
+    } else {
+      setTransactions((prev) => [
+        ...prev,
+        {
+          ...formData,
+          id: Math.random().toString(36).substr(2, 9),
+          budgetId,
+          date: new Date().toISOString().split("T")[0],
+        },
+      ]);
+    }
+    setIsDialogOpen(false);
+    resetForm();
+  };
+
+  const handleEdit = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
+    setFormData({
+      name: transaction.name,
+      amount: transaction.amount,
+      type: transaction.type,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = (id: string) => {
+    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  };
+
+  const filteredTransactions = transactions.filter((t) =>
+    t.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // Summary Calculations
+  const totalIncome = transactions
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const totalExpense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const balance = totalIncome - totalExpense;
+
+  const highestExpense = transactions
+    .filter((t) => t.type === "expense")
+    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+
+  if (!budget) {
+    return <div className="p-6">Budget not found.</div>;
+  }
+
+  return (
+    <div className="container mx-auto p-6 space-y-6 max-w-5xl">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit">
+          <ArrowLeft className="h-4 w-4" />
+          <Link href="/budgets" className="text-sm font-medium">Back to Budgets</Link>
+        </div>
+        
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
+            <p className="text-muted-foreground">Detailed view of your transactions.</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
+              <Plus className="h-4 w-4" /> Add Transaction
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <Card className="bg-muted/50 border-none shadow-none">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Current Balance</CardTitle>
+            <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold">${balance.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-muted/50 border-none shadow-none">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total Income</CardTitle>
+            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold text-emerald-600">${totalIncome.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-muted/50 border-none shadow-none">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Total Expense</CardTitle>
+            <TrendingDown className="h-3.5 w-3.5 text-destructive" />
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold text-destructive">${totalExpense.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+        <Card className="bg-muted/50 border-none shadow-none">
+          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
+            <CardTitle className="text-xs font-medium text-muted-foreground">Highest Expense</CardTitle>
+            <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
+          </CardHeader>
+          <CardContent className="p-4 pt-0">
+            <div className="text-xl font-bold">${highestExpense.toLocaleString()}</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
+        <InputGroup className="w-full sm:w-[300px]">
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            placeholder="Search transactions..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </InputGroup>
+      </div>
+
+      {filteredTransactions.length === 0 ? (
+        <div className="text-center py-10 text-muted-foreground text-sm border rounded-md border-dashed">
+          No transactions found.
+        </div>
+      ) : (
+        <ItemGroup>
+          {filteredTransactions.map((transaction) => (
+            <Item key={transaction.id} variant="outline" className="justify-between">
+              <ItemMedia>
+                <div className={cn(
+                  "flex h-9 w-9 items-center justify-center rounded-lg",
+                  transaction.type === "income" ? "bg-emerald-500/10" : "bg-destructive/10"
+                )}>
+                  {transaction.type === "income" ? (
+                    <TrendingUp className="h-5 w-5 text-emerald-600" />
+                  ) : (
+                    <TrendingDown className="h-5 w-5 text-destructive" />
+                  )}
+                </div>
+              </ItemMedia>
+              <ItemContent>
+                <ItemTitle>{transaction.name}</ItemTitle>
+                <ItemDescription>
+                  {transaction.date}
+                </ItemDescription>
+              </ItemContent>
+              <div className="flex flex-col items-end mr-4">
+                <span className={cn(
+                  "text-sm font-semibold",
+                  transaction.type === "income" ? "text-emerald-600" : "text-destructive"
+                )}>
+                  {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
+                </span>
+              </div>
+              <ItemActions>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm">
+                      <span className="sr-only">Open menu</span>
+                      <MoreHorizontal />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                    <DropdownMenuItem onClick={() => handleEdit(transaction)}>
+                      <Pencil className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="text-destructive focus:text-destructive"
+                      onClick={() => handleDelete(transaction.id)}
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </ItemActions>
+            </Item>
+          ))}
+        </ItemGroup>
+      )}
+
+      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>
+              {editingTransaction ? "Edit Transaction" : "Add Transaction"}
+            </DialogTitle>
+            <DialogDescription>
+              {editingTransaction
+                ? "Make changes to your transaction here."
+                : "Add a new transaction to this budget."}
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSave();
+            }}
+          >
+            <FieldGroup className="py-2">
+              <Field>
+                <FieldLabel htmlFor="t-name">Name</FieldLabel>
+                <Input
+                  id="t-name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  placeholder="e.g. Salary, Groceries"
+                  required
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
+                  <Input
+                    id="t-amount"
+                    type="number"
+                    value={formData.amount || ""}
+                    onChange={(e) =>
+                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                    }
+                    placeholder="0.00"
+                    required
+                  />
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="t-type">Type</FieldLabel>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(val: "income" | "expense") =>
+                      setFormData({ ...formData, type: val })
+                    }
+                  >
+                    <SelectTrigger id="t-type">
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="expense">Expense</SelectItem>
+                      <SelectItem value="income">Income</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FieldGroup>
+            <DialogFooter className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setIsDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button size="sm" type="submit">
+                {editingTransaction ? "Save changes" : "Add Transaction"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
