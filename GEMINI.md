@@ -40,3 +40,23 @@ A modern budget tracking application built with Next.js, focused on providing a 
 - Ensure all new components are properly typed with TypeScript.
 - Follow the App Router conventions for data fetching and routing.
 - Keep the UI consistent with the "radix-mira" style defined in `components.json`.
+
+## UI & Styling Standards
+
+All UI development must strictly follow a compact and minimalist aesthetic, prioritizing high-density, utility-focused interfaces for interactive elements.
+
+### Spacing & Layout (Tailwind v4)
+- **Density:** Use tight spacing. Prefer `gap-4` for form grids and `p-6` (or standard Card padding) for containers.
+- **Grids:** Utilize `grid-cols-2` for compact forms within cards (`max-w-md` or `max-w-sm`).
+- **Alignment:** Use `ml-auto` for right-aligning secondary elements (e.g., badges in footers).
+
+### Interactive Components
+- **Sizing:** Default to small/compact sizes. Use `size="sm"` for dialogs/modals where content permits.
+- **Buttons:** Use `variant="ghost"` or `size="icon"` for secondary actions to reduce visual noise. Use `variant="outline"` for cancel actions.
+- **Inputs:** Maintain standard `shadcn/ui` heights (typically `h-9` or `h-10`) with `text-sm` for a refined look.
+- **Cards:** Restrict max widths (`max-w-sm`, `max-w-md`) to avoid stretched UIs. Use `pt-0` when media/headers interact.
+
+### Visual Style
+- **Minimalism:** Lean on `variant="secondary"` for badges and `variant="ghost"` for icon-only buttons.
+- **Icons:** Use `lucide-react` icons extensively for clearer, text-light navigation (e.g., inside Dropdowns).
+- **Separators:** Use `DropdownMenuSeparator` or similar dividers to organize dense menus without adding heavy margins.
