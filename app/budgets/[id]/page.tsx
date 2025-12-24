@@ -73,6 +73,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     name: "Salary",
     amount: 5000,
     type: "income",
+    category: "Income",
     date: "2024-01-01",
   },
   {
@@ -81,6 +82,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     name: "Rent",
     amount: 1500,
     type: "expense",
+    category: "Housing",
     date: "2024-01-02",
   },
   {
@@ -89,6 +91,7 @@ const MOCK_TRANSACTIONS: Transaction[] = [
     name: "Groceries",
     amount: 400,
     type: "expense",
+    category: "Food",
     date: "2024-01-05",
   },
 ];
@@ -122,6 +125,7 @@ export default function BudgetDetailPage({
     name: "",
     amount: 0,
     type: "expense",
+    category: "",
   });
 
   const resetForm = () => {
@@ -129,6 +133,7 @@ export default function BudgetDetailPage({
       name: "",
       amount: 0,
       type: "expense",
+      category: "",
     });
     setEditingTransaction(null);
   };
@@ -166,6 +171,7 @@ export default function BudgetDetailPage({
       name: transaction.name,
       amount: transaction.amount,
       type: transaction.type,
+      category: transaction.category,
     });
     setIsDialogOpen(true);
   };
@@ -355,7 +361,9 @@ export default function BudgetDetailPage({
               </ItemMedia>
               <ItemContent>
                 <ItemTitle>{transaction.name}</ItemTitle>
-                <ItemDescription>{transaction.date}</ItemDescription>
+                <ItemDescription>
+                  {transaction.category} • {transaction.date}
+                </ItemDescription>
               </ItemContent>
               <div className="flex flex-col items-end mr-4">
                 <span
@@ -428,6 +436,18 @@ export default function BudgetDetailPage({
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="e.g. Salary, Groceries"
+                  required
+                />
+              </Field>
+              <Field>
+                <FieldLabel htmlFor="t-category">Category</FieldLabel>
+                <Input
+                  id="t-category"
+                  value={formData.category}
+                  onChange={(e) =>
+                    setFormData({ ...formData, category: e.target.value })
+                  }
+                  placeholder="e.g. Food, Rent, Income"
                   required
                 />
               </Field>
