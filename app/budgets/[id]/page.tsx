@@ -245,7 +245,7 @@ export default function BudgetDetailPage({
                 <p className="text-[10px] mb-1 uppercase tracking-wider font-bold text-muted-foreground">
                   Current Balance
                 </p>
-                <h2 className="text-4xl font-bold tracking-tight">
+                <h2 className="text-2xl font-bold tracking-tight">
                   $ {balance.toLocaleString()}
                 </h2>
               </div>
