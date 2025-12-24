@@ -188,44 +188,43 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-muted/50 border-none shadow-none">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Current Balance</CardTitle>
-            <Wallet className="h-3.5 w-3.5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold">${balance.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-muted/50 border-none shadow-none">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Total Income</CardTitle>
-            <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-emerald-600">${totalIncome.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-muted/50 border-none shadow-none">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Total Expense</CardTitle>
-            <TrendingDown className="h-3.5 w-3.5 text-destructive" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold text-destructive">${totalExpense.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-        <Card className="bg-muted/50 border-none shadow-none">
-          <CardHeader className="p-4 pb-2 flex flex-row items-center justify-between space-y-0">
-            <CardTitle className="text-xs font-medium text-muted-foreground">Highest Expense</CardTitle>
-            <DollarSign className="h-3.5 w-3.5 text-muted-foreground" />
-          </CardHeader>
-          <CardContent className="p-4 pt-0">
-            <div className="text-xl font-bold">${highestExpense.toLocaleString()}</div>
-          </CardContent>
-        </Card>
-      </div>
+      <Card className="bg-muted/40 border-none shadow-none">
+        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background shadow-xs">
+              <Wallet className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Current Balance</p>
+              <h2 className="text-2xl font-bold tracking-tight">${balance.toLocaleString()}</h2>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-x-6 gap-y-2 sm:border-l sm:pl-6">
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Income</p>
+              <div className="flex items-center gap-1 text-emerald-600">
+                <TrendingUp className="h-3 w-3" />
+                <span className="text-sm font-bold">${totalIncome.toLocaleString()}</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Expense</p>
+              <div className="flex items-center gap-1 text-destructive">
+                <TrendingDown className="h-3 w-3" />
+                <span className="text-sm font-bold">${totalExpense.toLocaleString()}</span>
+              </div>
+            </div>
+            <div>
+              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Max Exp.</p>
+              <div className="flex items-center gap-1">
+                <DollarSign className="h-3 w-3 text-muted-foreground" />
+                <span className="text-sm font-bold">${highestExpense.toLocaleString()}</span>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <InputGroup className="w-full sm:w-[300px]">
