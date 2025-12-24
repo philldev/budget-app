@@ -37,6 +37,7 @@ A modern budget tracking application built with Next.js, focused on providing a 
 
 ## Gemini Instructions
 - When adding new features, prioritize using existing shadcn/ui components or adding new ones from the registry if needed.
+- **NEVER** update shadcn component files (located in `components/ui/`) unless explicitly requested by the user.
 - Ensure all new components are properly typed with TypeScript.
 - Follow the App Router conventions for data fetching and routing.
 - Keep the UI consistent with the "radix-mira" style defined in `components.json`.
