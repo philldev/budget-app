@@ -49,13 +49,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { InputGroup, InputGroupAddon, InputGroupInput } from "@/components/ui/input-group";
+import {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupInput,
+} from "@/components/ui/input-group";
+import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 
 // Mock data
@@ -66,29 +67,58 @@ const MOCK_BUDGETS: Budget[] = [
 ];
 
 const MOCK_TRANSACTIONS: Transaction[] = [
-  { id: "t1", budgetId: "1", name: "Salary", amount: 5000, type: "income", date: "2024-01-01" },
-  { id: "t2", budgetId: "1", name: "Rent", amount: 1500, type: "expense", date: "2024-01-02" },
-  { id: "t3", budgetId: "1", name: "Groceries", amount: 400, type: "expense", date: "2024-01-05" },
+  {
+    id: "t1",
+    budgetId: "1",
+    name: "Salary",
+    amount: 5000,
+    type: "income",
+    date: "2024-01-01",
+  },
+  {
+    id: "t2",
+    budgetId: "1",
+    name: "Rent",
+    amount: 1500,
+    type: "expense",
+    date: "2024-01-02",
+  },
+  {
+    id: "t3",
+    budgetId: "1",
+    name: "Groceries",
+    amount: 400,
+    type: "expense",
+    date: "2024-01-05",
+  },
 ];
 
-export default function BudgetDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default function BudgetDetailPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
 
   const [budget] = React.useState<Budget | undefined>(
-    MOCK_BUDGETS.find((b) => b.id === budgetId)
+    MOCK_BUDGETS.find((b) => b.id === budgetId),
   );
 
   const [transactions, setTransactions] = React.useState<Transaction[]>(
-    MOCK_TRANSACTIONS.filter((t) => t.budgetId === budgetId)
+    MOCK_TRANSACTIONS.filter((t) => t.budgetId === budgetId),
   );
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
-  const [editingTransaction, setEditingTransaction] = React.useState<Transaction | null>(null);
+  const [editingTransaction, setEditingTransaction] =
+    React.useState<Transaction | null>(null);
+  const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
 
   // Form State
-  const [formData, setFormData] = React.useState<Omit<Transaction, "id" | "budgetId" | "date">>({
+  const [formData, setFormData] = React.useState<
+    Omit<Transaction, "id" | "budgetId" | "date">
+  >({
     name: "",
     amount: 0,
     type: "expense",
@@ -112,8 +142,8 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
     if (editingTransaction) {
       setTransactions((prev) =>
         prev.map((t) =>
-          t.id === editingTransaction.id ? { ...t, ...formData } : t
-        )
+          t.id === editingTransaction.id ? { ...t, ...formData } : t,
+        ),
       );
     } else {
       setTransactions((prev) => [
@@ -145,7 +175,7 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
   };
 
   const filteredTransactions = transactions.filter((t) =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase())
+    t.name.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Summary Calculations
@@ -159,9 +189,21 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
 
   const balance = totalIncome - totalExpense;
 
-  const highestExpense = transactions
+  const highestExpenseTransaction = transactions
     .filter((t) => t.type === "expense")
-    .reduce((max, t) => (t.amount > max ? t.amount : max), 0);
+    .reduce(
+      (max, t) => (t.amount > (max?.amount || 0) ? t : max),
+      null as Transaction | null,
+    );
+
+  const scrollToTransaction = (id: string) => {
+    const element = document.getElementById(`transaction-${id}`);
+    if (element) {
+      element.scrollIntoView({ behavior: "smooth", block: "center" });
+      setHighlightedId(id);
+      setTimeout(() => setHighlightedId(null), 2000);
+    }
+  };
 
   if (!budget) {
     return <div className="p-6">Budget not found.</div>;
@@ -172,13 +214,17 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       <div className="flex flex-col gap-4">
         <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit">
           <ArrowLeft className="h-4 w-4" />
-          <Link href="/budgets" className="text-sm font-medium">Back to Budgets</Link>
+          <Link href="/budgets" className="text-sm font-medium">
+            Back to Budgets
+          </Link>
         </div>
-        
+
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
-            <p className="text-muted-foreground">Detailed view of your transactions.</p>
+            <p className="text-muted-foreground">
+              Detailed view of your transactions.
+            </p>
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={() => setIsDialogOpen(true)} className="gap-2">
@@ -189,38 +235,71 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       </div>
 
       <Card className="bg-muted/40 border-none shadow-none">
-        <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background shadow-xs">
-              <Wallet className="h-5 w-5 text-primary" />
+        <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
+          <div className="p-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
+            <div className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-background shadow-xs">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">
+                  Current Balance
+                </p>
+                <h2 className="text-2xl font-bold tracking-tight">
+                  ${balance.toLocaleString()}
+                </h2>
+              </div>
             </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider font-bold text-muted-foreground">Current Balance</p>
-              <h2 className="text-2xl font-bold tracking-tight">${balance.toLocaleString()}</h2>
-            </div>
-          </div>
 
-          <div className="flex flex-wrap gap-x-6 gap-y-2 sm:border-l sm:pl-6">
-            <div>
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Income</p>
-              <div className="flex items-center gap-1 text-emerald-600">
-                <TrendingUp className="h-3 w-3" />
-                <span className="text-sm font-bold">${totalIncome.toLocaleString()}</span>
+            <Separator
+              orientation="vertical"
+              className="h-10 hidden sm:block"
+            />
+
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+                  Income
+                </p>
+                <div className="flex items-center gap-1.5 text-emerald-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span className="text-sm font-bold">
+                    ${totalIncome.toLocaleString()}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Expense</p>
-              <div className="flex items-center gap-1 text-destructive">
-                <TrendingDown className="h-3 w-3" />
-                <span className="text-sm font-bold">${totalExpense.toLocaleString()}</span>
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+                  Expense
+                </p>
+                <div className="flex items-center gap-1.5 text-destructive">
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  <span className="text-sm font-bold">
+                    ${totalExpense.toLocaleString()}
+                  </span>
+                </div>
               </div>
-            </div>
-            <div>
-              <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-0.5">Max Exp.</p>
-              <div className="flex items-center gap-1">
-                <DollarSign className="h-3 w-3 text-muted-foreground" />
-                <span className="text-sm font-bold">${highestExpense.toLocaleString()}</span>
-              </div>
+              {highestExpenseTransaction && (
+                <button
+                  onClick={() =>
+                    scrollToTransaction(highestExpenseTransaction.id)
+                  }
+                  className="text-left group outline-none"
+                >
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 transition-colors group-hover:text-foreground">
+                    Highest
+                  </p>
+                  <div className="flex items-center gap-1.5 text-destructive leading-none">
+                    <DollarSign className="h-3.5 w-3.5" />
+                    <span className="text-sm font-bold">
+                      ${highestExpenseTransaction.amount.toLocaleString()}
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
+                    {highestExpenseTransaction.name}
+                  </p>
+                </button>
+              )}
             </div>
           </div>
         </CardContent>
@@ -246,12 +325,25 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
       ) : (
         <ItemGroup>
           {filteredTransactions.map((transaction) => (
-            <Item key={transaction.id} variant="outline" className="justify-between">
+            <Item
+              key={transaction.id}
+              id={`transaction-${transaction.id}`}
+              variant="outline"
+              className={cn(
+                "justify-between transition-all duration-500",
+                highlightedId === transaction.id &&
+                  "bg-destructive/10 ring-2 ring-destructive/50 border-destructive/50",
+              )}
+            >
               <ItemMedia>
-                <div className={cn(
-                  "flex h-9 w-9 items-center justify-center rounded-lg",
-                  transaction.type === "income" ? "bg-emerald-500/10" : "bg-destructive/10"
-                )}>
+                <div
+                  className={cn(
+                    "flex h-9 w-9 items-center justify-center rounded-lg",
+                    transaction.type === "income"
+                      ? "bg-emerald-500/10"
+                      : "bg-destructive/10",
+                  )}
+                >
                   {transaction.type === "income" ? (
                     <TrendingUp className="h-5 w-5 text-emerald-600" />
                   ) : (
@@ -261,16 +353,19 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
               </ItemMedia>
               <ItemContent>
                 <ItemTitle>{transaction.name}</ItemTitle>
-                <ItemDescription>
-                  {transaction.date}
-                </ItemDescription>
+                <ItemDescription>{transaction.date}</ItemDescription>
               </ItemContent>
               <div className="flex flex-col items-end mr-4">
-                <span className={cn(
-                  "text-sm font-semibold",
-                  transaction.type === "income" ? "text-emerald-600" : "text-destructive"
-                )}>
-                  {transaction.type === "income" ? "+" : "-"}${transaction.amount.toLocaleString()}
+                <span
+                  className={cn(
+                    "text-sm font-semibold",
+                    transaction.type === "income"
+                      ? "text-emerald-600"
+                      : "text-destructive",
+                  )}
+                >
+                  {transaction.type === "income" ? "+" : "-"}$
+                  {transaction.amount.toLocaleString()}
                 </span>
               </div>
               <ItemActions>
@@ -342,7 +437,10 @@ export default function BudgetDetailPage({ params }: { params: Promise<{ id: str
                     type="number"
                     value={formData.amount || ""}
                     onChange={(e) =>
-                      setFormData({ ...formData, amount: parseFloat(e.target.value) || 0 })
+                      setFormData({
+                        ...formData,
+                        amount: parseFloat(e.target.value) || 0,
+                      })
                     }
                     placeholder="0.00"
                     required
