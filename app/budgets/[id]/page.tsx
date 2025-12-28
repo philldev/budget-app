@@ -288,7 +288,6 @@ export default function BudgetDetailPage({
             </p>
           </div>
           <div className="flex items-center gap-2">
-            {session?.user && <UserNav user={session.user} />}
             <Button
               onClick={() => setIsDialogOpen(true)}
               size="sm"
@@ -302,7 +301,7 @@ export default function BudgetDetailPage({
                   <MoreHorizontal />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
+              <DropdownMenuContent align="end" className="min-w-[10rem]">
                 <DropdownMenuLabel>Budget Options</DropdownMenuLabel>
                 <DropdownMenuItem onClick={() => setIsBudgetDialogOpen(true)}>
                   <Pencil className="mr-2 h-4 w-4" />
@@ -318,6 +317,7 @@ export default function BudgetDetailPage({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            {session?.user && <UserNav user={session.user} />}
           </div>
         </div>
       </div>

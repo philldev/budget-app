@@ -48,11 +48,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Field,
-  FieldGroup,
-  FieldLabel,
-} from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -102,11 +98,13 @@ export default function BudgetsPage() {
   const updateBudget = useUpdateBudget(editingBudget?.id || "");
 
   // Form State
-  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>({
-    name: "",
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
-  });
+  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>(
+    {
+      name: "",
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+    },
+  );
 
   const [filterYear, setFilterYear] = React.useState<string>("all");
 
@@ -149,7 +147,11 @@ export default function BudgetsPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (confirm("Are you sure you want to delete this budget? All related transactions will be removed.")) {
+    if (
+      confirm(
+        "Are you sure you want to delete this budget? All related transactions will be removed.",
+      )
+    ) {
       try {
         await deleteBudget.mutateAsync(id);
       } catch (error) {
@@ -172,13 +174,19 @@ export default function BudgetsPage() {
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
-          <p className="text-muted-foreground text-xs">Manage your monthly budgets.</p>
+          <p className="text-muted-foreground text-xs">
+            Manage your monthly budgets.
+          </p>
         </div>
         <div className="flex items-center gap-2">
-          {session?.user && <UserNav user={session.user} />}
-          <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
+          <Button
+            onClick={() => setIsDialogOpen(true)}
+            size="sm"
+            className="gap-2"
+          >
             <Plus className="h-4 w-4" /> Create Budget
           </Button>
+          {session?.user && <UserNav user={session.user} />}
         </div>
       </div>
 
@@ -227,7 +235,12 @@ export default function BudgetsPage() {
       ) : (
         <ItemGroup>
           {filteredBudgets.map((budget) => (
-            <Item key={budget.id} variant="outline" size="xs" className="justify-between">
+            <Item
+              key={budget.id}
+              variant="outline"
+              size="xs"
+              className="justify-between"
+            >
               <ItemMedia>
                 <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-muted">
                   <Wallet className="h-5 w-5 text-muted-foreground" />
@@ -235,7 +248,10 @@ export default function BudgetsPage() {
               </ItemMedia>
               <ItemContent>
                 <ItemTitle>
-                  <Link href={`/budgets/${budget.id}`} className="hover:underline">
+                  <Link
+                    href={`/budgets/${budget.id}`}
+                    className="hover:underline"
+                  >
                     {budget.name}
                   </Link>
                 </ItemTitle>
@@ -362,7 +378,11 @@ export default function BudgetsPage() {
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit" disabled={createBudget.isPending || updateBudget.isPending}>
+              <Button
+                size="sm"
+                type="submit"
+                disabled={createBudget.isPending || updateBudget.isPending}
+              >
                 {(createBudget.isPending || updateBudget.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
