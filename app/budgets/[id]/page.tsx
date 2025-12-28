@@ -12,12 +12,10 @@ import {
   Trash2,
   TrendingUp,
   TrendingDown,
-  DollarSign,
   Wallet,
 } from "lucide-react";
-import { Budget, Transaction } from "@/lib/types";
+import { Transaction } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Item,
   ItemGroup,
@@ -28,14 +26,6 @@ import {
   ItemMedia,
 } from "@/components/ui/item";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -43,14 +33,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { Card, CardContent } from "@/components/ui/card";
 import {
   InputGroup,
@@ -61,18 +43,18 @@ import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
   useGetBudget,
-  useUpdateBudget,
   useDeleteBudget,
 } from "@/lib/hooks/use-budgets";
 import {
   useGetTransactions,
-  useCreateTransaction,
-  useUpdateTransaction,
   useDeleteTransaction,
 } from "@/lib/hooks/use-transactions";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { UserNav } from "@/components/auth/user-nav";
+import { BudgetDialog } from "@/components/budgets/budget-dialog";
+import { TransactionDialog } from "@/components/transactions/transaction-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 
 const MONTHS = [
   "January",
@@ -88,9 +70,6 @@ const MONTHS = [
   "November",
   "December",
 ];
-
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 export default function BudgetDetailPage({
   params,
@@ -110,10 +89,7 @@ export default function BudgetDetailPage({
   const { data: transactions = [], isLoading: isLoadingTransactions } =
     useGetTransactions(budgetId);
 
-  const updateBudget = useUpdateBudget(budgetId);
   const deleteBudget = useDeleteBudget();
-
-  const createTransaction = useCreateTransaction();
   const deleteTransaction = useDeleteTransaction();
 
   const [searchQuery, setSearchQuery] = React.useState("");
@@ -123,104 +99,34 @@ export default function BudgetDetailPage({
     React.useState<Transaction | null>(null);
   const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
 
-  const updateTransaction = useUpdateTransaction(editingTransaction?.id || "");
-
-  // Form State
-  const [formData, setFormData] = React.useState<
-    Omit<Transaction, "id" | "budgetId" | "date">
-  >({
-    name: "",
-    amount: 0,
-    type: "expense",
-    category: "",
-  });
-
-  const [budgetFormData, setBudgetFormData] = React.useState<
-    Omit<Budget, "id" | "userId">
-  >({
-    name: "",
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
-  });
-
-  // Update budget form when data arrives
-  React.useEffect(() => {
-    if (budget) {
-      setBudgetFormData({
-        name: budget.name,
-        month: budget.month,
-        year: budget.year,
-      });
-    }
-  }, [budget]);
-
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      amount: 0,
-      type: "expense",
-      category: "",
-    });
-    setEditingTransaction(null);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) resetForm();
-  };
-
-  const handleSave = async () => {
-    try {
-      if (editingTransaction) {
-        await updateTransaction.mutateAsync(formData);
-      } else {
-        await createTransaction.mutateAsync({
-          ...formData,
-          budgetId,
-          date: new Date().toISOString().split("T")[0],
-        });
-      }
-      setIsDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error("Failed to save transaction:", error);
-    }
-  };
+  const [isDeleteBudgetDialogOpen, setIsDeleteBudgetDialogOpen] = React.useState(false);
+  const [isDeleteTransactionDialogOpen, setIsDeleteTransactionDialogOpen] = React.useState(false);
+  const [transactionToDelete, setTransactionToDelete] = React.useState<string | null>(null);
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
-    setFormData({
-      name: transaction.name,
-      amount: transaction.amount,
-      type: transaction.type,
-      category: transaction.category,
-    });
     setIsDialogOpen(true);
   };
 
-  const handleSaveBudget = async () => {
+  const handleConfirmDeleteBudget = async () => {
     try {
-      await updateBudget.mutateAsync(budgetFormData);
-      setIsBudgetDialogOpen(false);
+      await deleteBudget.mutateAsync(budgetId);
+      router.push("/budgets");
     } catch (error) {
-      console.error("Failed to update budget:", error);
+      console.error("Failed to delete budget:", error);
     }
   };
 
-  const handleDeleteBudget = async () => {
-    if (confirm("Are you sure you want to delete this budget?")) {
-      try {
-        await deleteBudget.mutateAsync(budgetId);
-        router.push("/budgets");
-      } catch (error) {
-        console.error("Failed to delete budget:", error);
-      }
-    }
+  const handleDeleteTransactionClick = (id: string) => {
+    setTransactionToDelete(id);
+    setIsDeleteTransactionDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
+  const handleConfirmDeleteTransaction = async () => {
+    if (!transactionToDelete) return;
     try {
-      await deleteTransaction.mutateAsync({ id, budgetId });
+      await deleteTransaction.mutateAsync({ id: transactionToDelete, budgetId });
+      setTransactionToDelete(null);
     } catch (error) {
       console.error("Failed to delete transaction:", error);
     }
@@ -289,7 +195,10 @@ export default function BudgetDetailPage({
           </div>
           <div className="flex items-center gap-2">
             <Button
-              onClick={() => setIsDialogOpen(true)}
+              onClick={() => {
+                setEditingTransaction(null);
+                setIsDialogOpen(true);
+              }}
               size="sm"
               className="gap-2"
             >
@@ -310,7 +219,7 @@ export default function BudgetDetailPage({
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onClick={handleDeleteBudget}
+                  onClick={() => setIsDeleteBudgetDialogOpen(true)}
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
                   Delete Budget
@@ -334,7 +243,7 @@ export default function BudgetDetailPage({
                   Current Balance
                 </p>
                 <h2 className="text-2xl font-bold tracking-tight">
-                  $ {balance.toLocaleString()}
+                  Rp {balance.toLocaleString("id-ID")}
                 </h2>
               </div>
             </div>
@@ -352,7 +261,7 @@ export default function BudgetDetailPage({
                 <div className="flex items-center gap-1.5 text-emerald-600">
                   <TrendingUp className="h-3.5 w-3.5" />
                   <span className="text-sm font-bold">
-                    ${totalIncome.toLocaleString()}
+                    Rp {totalIncome.toLocaleString("id-ID")}
                   </span>
                 </div>
               </div>
@@ -363,7 +272,7 @@ export default function BudgetDetailPage({
                 <div className="flex items-center gap-1.5 text-destructive">
                   <TrendingDown className="h-3.5 w-3.5" />
                   <span className="text-sm font-bold">
-                    ${totalExpense.toLocaleString()}
+                    Rp {totalExpense.toLocaleString("id-ID")}
                   </span>
                 </div>
               </div>
@@ -378,9 +287,9 @@ export default function BudgetDetailPage({
                     Highest
                   </p>
                   <div className="flex items-center gap-1.5 text-destructive leading-none">
-                    <DollarSign className="h-3.5 w-3.5" />
+                    <TrendingDown className="h-3.5 w-3.5" />
                     <span className="text-sm font-bold">
-                      ${highestExpenseTransaction.amount.toLocaleString()}
+                      Rp {highestExpenseTransaction.amount.toLocaleString("id-ID")}
                     </span>
                   </div>
                   <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
@@ -515,10 +424,11 @@ export default function BudgetDetailPage({
                         : "text-destructive",
                     )}
                   >
-                    {transaction.type === "income" ? "+" : "-"}$
-                    {transaction.amount.toLocaleString()}
+                    {transaction.type === "income" ? "+" : "-"}Rp
+                    {transaction.amount.toLocaleString("id-ID")}
                   </span>
                 </div>
+
                 <ItemActions>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -536,7 +446,7 @@ export default function BudgetDetailPage({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={() => handleDelete(transaction.id)}
+                        onClick={() => handleDeleteTransactionClick(transaction.id)}
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete
@@ -550,210 +460,36 @@ export default function BudgetDetailPage({
         </ItemGroup>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {editingTransaction ? "Edit Transaction" : "Add Transaction"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingTransaction
-                ? "Make changes to your transaction here."
-                : "Add a new transaction to this budget."}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-          >
-            <FieldGroup className="py-2">
-              <Field>
-                <FieldLabel htmlFor="t-name">Name</FieldLabel>
-                <Input
-                  id="t-name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="e.g. Salary, Groceries"
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="t-category">Category</FieldLabel>
-                <Input
-                  id="t-category"
-                  value={formData.category}
-                  onChange={(e) =>
-                    setFormData({ ...formData, category: e.target.value })
-                  }
-                  placeholder="e.g. Food, Rent, Income"
-                  required
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
-                  <Input
-                    id="t-amount"
-                    type="number"
-                    value={formData.amount || ""}
-                    onChange={(e) =>
-                      setFormData({
-                        ...formData,
-                        amount: parseFloat(e.target.value) || 0,
-                      })
-                    }
-                    placeholder="0.00"
-                    required
-                  />
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="t-type">Type</FieldLabel>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(val: "income" | "expense") =>
-                      setFormData({ ...formData, type: val })
-                    }
-                  >
-                    <SelectTrigger id="t-type">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="expense">Expense</SelectItem>
-                      <SelectItem value="income">Income</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            </FieldGroup>
-            <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                type="submit"
-                disabled={
-                  createTransaction.isPending || updateTransaction.isPending
-                }
-              >
-                {(createTransaction.isPending ||
-                  updateTransaction.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {editingTransaction ? "Save changes" : "Add Transaction"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <TransactionDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        editingTransaction={editingTransaction}
+        budgetId={budgetId}
+      />
 
-      <Dialog open={isBudgetDialogOpen} onOpenChange={setIsBudgetDialogOpen}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>Edit Budget</DialogTitle>
-            <DialogDescription>
-              Update your budget details below.
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSaveBudget();
-            }}
-          >
-            <FieldGroup className="py-2">
-              <Field>
-                <FieldLabel htmlFor="b-name">Name</FieldLabel>
-                <Input
-                  id="b-name"
-                  value={budgetFormData.name}
-                  onChange={(e) =>
-                    setBudgetFormData({
-                      ...budgetFormData,
-                      name: e.target.value,
-                    })
-                  }
-                  placeholder="e.g. Monthly Expenses"
-                  required
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel htmlFor="b-month">Month</FieldLabel>
-                  <Select
-                    value={budgetFormData.month.toString()}
-                    onValueChange={(val) =>
-                      setBudgetFormData({
-                        ...budgetFormData,
-                        month: parseInt(val),
-                      })
-                    }
-                  >
-                    <SelectTrigger id="b-month">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((month, index) => (
-                        <SelectItem key={month} value={(index + 1).toString()}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="b-year">Year</FieldLabel>
-                  <Select
-                    value={budgetFormData.year.toString()}
-                    onValueChange={(val) =>
-                      setBudgetFormData({
-                        ...budgetFormData,
-                        year: parseInt(val),
-                      })
-                    }
-                  >
-                    <SelectTrigger id="b-year">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {YEARS.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            </FieldGroup>
-            <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => setIsBudgetDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button size="sm" type="submit" disabled={updateBudget.isPending}>
-                {updateBudget.isPending && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                Save changes
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <BudgetDialog
+        open={isBudgetDialogOpen}
+        onOpenChange={setIsBudgetDialogOpen}
+        editingBudget={budget}
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteBudgetDialogOpen}
+        onOpenChange={setIsDeleteBudgetDialogOpen}
+        onConfirm={handleConfirmDeleteBudget}
+        isLoading={deleteBudget.isPending}
+        title="Delete Budget?"
+        description="Are you sure you want to delete this budget? All related transactions will be removed. This action cannot be undone."
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteTransactionDialogOpen}
+        onOpenChange={setIsDeleteTransactionDialogOpen}
+        onConfirm={handleConfirmDeleteTransaction}
+        isLoading={deleteTransaction.isPending}
+        title="Delete Transaction?"
+        description="Are you sure you want to delete this transaction? This action cannot be undone."
+      />
     </div>
   );
 }

@@ -14,7 +14,6 @@ import {
 import Link from "next/link";
 import { Budget } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Item,
   ItemGroup,
@@ -24,15 +23,6 @@ import {
   ItemActions,
   ItemMedia,
 } from "@/components/ui/item";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,24 +38,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-
 import {
   useGetBudgets,
-  useCreateBudget,
-  useUpdateBudget,
   useDeleteBudget,
 } from "@/lib/hooks/use-budgets";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { UserNav } from "@/components/auth/user-nav";
+import { BudgetDialog } from "@/components/budgets/budget-dialog";
+import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 
 const MONTHS = [
   "January",
@@ -88,75 +74,33 @@ const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 export default function BudgetsPage() {
   const { data: session } = authClient.useSession();
   const { data: budgets = [], isLoading, isError } = useGetBudgets();
-  const createBudget = useCreateBudget();
   const deleteBudget = useDeleteBudget();
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingBudget, setEditingBudget] = React.useState<Budget | null>(null);
-
-  const updateBudget = useUpdateBudget(editingBudget?.id || "");
-
-  // Form State
-  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>(
-    {
-      name: "",
-      month: new Date().getMonth() + 1,
-      year: new Date().getFullYear(),
-    },
-  );
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
+  const [budgetToDelete, setBudgetToDelete] = React.useState<string | null>(null);
 
   const [filterYear, setFilterYear] = React.useState<string>("all");
 
-  const resetForm = () => {
-    setFormData({
-      name: "",
-      month: new Date().getMonth() + 1,
-      year: new Date().getFullYear(),
-    });
-    setEditingBudget(null);
-  };
-
-  const handleOpenChange = (open: boolean) => {
-    setIsDialogOpen(open);
-    if (!open) resetForm();
-  };
-
-  const handleSave = async () => {
-    try {
-      if (editingBudget) {
-        await updateBudget.mutateAsync(formData);
-      } else {
-        await createBudget.mutateAsync(formData);
-      }
-      setIsDialogOpen(false);
-      resetForm();
-    } catch (error) {
-      console.error("Failed to save budget:", error);
-    }
-  };
-
   const handleEdit = (budget: Budget) => {
     setEditingBudget(budget);
-    setFormData({
-      name: budget.name,
-      month: budget.month,
-      year: budget.year,
-    });
     setIsDialogOpen(true);
   };
 
-  const handleDelete = async (id: string) => {
-    if (
-      confirm(
-        "Are you sure you want to delete this budget? All related transactions will be removed.",
-      )
-    ) {
-      try {
-        await deleteBudget.mutateAsync(id);
-      } catch (error) {
-        console.error("Failed to delete budget:", error);
-      }
+  const handleDeleteClick = (id: string) => {
+    setBudgetToDelete(id);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!budgetToDelete) return;
+    try {
+      await deleteBudget.mutateAsync(budgetToDelete);
+      setBudgetToDelete(null);
+    } catch (error) {
+      console.error("Failed to delete budget:", error);
     }
   };
 
@@ -180,7 +124,10 @@ export default function BudgetsPage() {
         </div>
         <div className="flex items-center gap-2">
           <Button
-            onClick={() => setIsDialogOpen(true)}
+            onClick={() => {
+              setEditingBudget(null);
+              setIsDialogOpen(true);
+            }}
             size="sm"
             className="gap-2"
           >
@@ -282,7 +229,7 @@ export default function BudgetsPage() {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       className="text-destructive focus:text-destructive"
-                      onClick={() => handleDelete(budget.id)}
+                      onClick={() => handleDeleteClick(budget.id)}
                     >
                       <Trash2 className="mr-2 h-4 w-4" />
                       Delete
@@ -295,103 +242,20 @@ export default function BudgetsPage() {
         </ItemGroup>
       )}
 
-      <Dialog open={isDialogOpen} onOpenChange={handleOpenChange}>
-        <DialogContent className="sm:max-w-sm">
-          <DialogHeader>
-            <DialogTitle>
-              {editingBudget ? "Edit Budget" : "Create Budget"}
-            </DialogTitle>
-            <DialogDescription>
-              {editingBudget
-                ? "Make changes to your budget here."
-                : "Add a new budget to your list."}
-            </DialogDescription>
-          </DialogHeader>
-          <form
-            onSubmit={(e) => {
-              e.preventDefault();
-              handleSave();
-            }}
-          >
-            <FieldGroup className="py-2">
-              <Field>
-                <FieldLabel htmlFor="name">Name</FieldLabel>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="e.g. Monthly Expenses"
-                  required
-                />
-              </Field>
-              <div className="grid grid-cols-2 gap-4">
-                <Field>
-                  <FieldLabel htmlFor="month">Month</FieldLabel>
-                  <Select
-                    value={formData.month.toString()}
-                    onValueChange={(val) =>
-                      setFormData({ ...formData, month: parseInt(val) })
-                    }
-                  >
-                    <SelectTrigger id="month">
-                      <SelectValue placeholder="Select month" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MONTHS.map((month, index) => (
-                        <SelectItem key={month} value={(index + 1).toString()}>
-                          {month}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                <Field>
-                  <FieldLabel htmlFor="year">Year</FieldLabel>
-                  <Select
-                    value={formData.year.toString()}
-                    onValueChange={(val) =>
-                      setFormData({ ...formData, year: parseInt(val) })
-                    }
-                  >
-                    <SelectTrigger id="year">
-                      <SelectValue placeholder="Select year" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {YEARS.map((year) => (
-                        <SelectItem key={year} value={year.toString()}>
-                          {year}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-              </div>
-            </FieldGroup>
-            <DialogFooter className="mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                type="button"
-                onClick={() => setIsDialogOpen(false)}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                type="submit"
-                disabled={createBudget.isPending || updateBudget.isPending}
-              >
-                {(createBudget.isPending || updateBudget.isPending) && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                )}
-                {editingBudget ? "Save changes" : "Create Budget"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
+      <BudgetDialog 
+        open={isDialogOpen} 
+        onOpenChange={setIsDialogOpen} 
+        editingBudget={editingBudget} 
+      />
+
+      <DeleteConfirmDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleConfirmDelete}
+        isLoading={deleteBudget.isPending}
+        title="Delete Budget?"
+        description="Are you sure you want to delete this budget? All related transactions will be removed. This action cannot be undone."
+      />
     </div>
   );
 }

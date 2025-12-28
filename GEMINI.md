@@ -55,6 +55,7 @@ A modern budget tracking application built with Next.js, focused on providing a 
 - Follow the App Router conventions for data fetching and routing.
 - Keep the UI consistent with the "radix-mira" style defined in `components.json`.
 - **Git Commits:** **NEVER** commit changes to the repository unless explicitly requested by the user. When requested, always propose a draft commit message first.
+- **Planning:** When asked to create a plan, you MUST create a detailed plan file in the `plans/` folder (e.g., `plans/XXX-feature-name.md`) BEFORE starting any implementation.
 
 ## UI & Styling Standards
 
