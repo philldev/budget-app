@@ -67,6 +67,8 @@ import {
   useDeleteTransaction,
 } from "@/lib/hooks/use-transactions";
 import { Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { UserNav } from "@/components/auth/user-nav";
 
 const MONTHS = [
   "January",
@@ -91,6 +93,7 @@ export default function BudgetDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const { data: session } = authClient.useSession();
   const router = useRouter();
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
@@ -273,6 +276,7 @@ export default function BudgetDetailPage({
             </p>
           </div>
           <div className="flex items-center gap-2">
+            {session?.user && <UserNav user={session.user} />}
             <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
               <Plus className="h-4 w-4" /> Add Transaction
             </Button>

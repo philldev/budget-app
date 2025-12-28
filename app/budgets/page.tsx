@@ -68,6 +68,8 @@ import {
   useDeleteBudget,
 } from "@/lib/hooks/use-budgets";
 import { Loader2 } from "lucide-react";
+import { authClient } from "@/lib/auth-client";
+import { UserNav } from "@/components/auth/user-nav";
 
 const MONTHS = [
   "January",
@@ -88,6 +90,7 @@ const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 export default function BudgetsPage() {
+  const { data: session } = authClient.useSession();
   const { data: budgets = [], isLoading, isError } = useGetBudgets();
   const createBudget = useCreateBudget();
   const deleteBudget = useDeleteBudget();
@@ -172,6 +175,7 @@ export default function BudgetsPage() {
           <p className="text-muted-foreground text-xs">Manage your monthly budgets.</p>
         </div>
         <div className="flex items-center gap-2">
+          {session?.user && <UserNav user={session.user} />}
           <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
             <Plus className="h-4 w-4" /> Create Budget
           </Button>
