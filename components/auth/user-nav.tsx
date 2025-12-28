@@ -39,10 +39,16 @@ export function UserNav({ user }: { user: User }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="relative rounded-full">
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          className="relative rounded-full"
+        >
           <Avatar className="size-6">
             <AvatarImage src={user.image || ""} alt={user.name} />
-            <AvatarFallback>{user.name?.charAt(0).toUpperCase()}</AvatarFallback>
+            <AvatarFallback>
+              {user.name?.charAt(0).toUpperCase()}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -55,21 +61,6 @@ export function UserNav({ user }: { user: User }) {
             </p>
           </div>
         </DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        <DropdownMenuGroup>
-          <DropdownMenuItem className="text-xs">
-            <User className="mr-2 h-3.5 w-3.5" />
-            <span>Profile</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-xs">
-            <CreditCard className="mr-2 h-3.5 w-3.5" />
-            <span>Billing</span>
-          </DropdownMenuItem>
-          <DropdownMenuItem className="text-xs">
-            <Settings className="mr-2 h-3.5 w-3.5" />
-            <span>Settings</span>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="text-xs">
           <LogOut className="mr-2 h-3.5 w-3.5" />

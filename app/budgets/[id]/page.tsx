@@ -51,7 +51,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   InputGroup,
   InputGroupAddon,
@@ -59,7 +59,11 @@ import {
 } from "@/components/ui/input-group";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { useGetBudget, useUpdateBudget, useDeleteBudget } from "@/lib/hooks/use-budgets";
+import {
+  useGetBudget,
+  useUpdateBudget,
+  useDeleteBudget,
+} from "@/lib/hooks/use-budgets";
 import {
   useGetTransactions,
   useCreateTransaction,
@@ -98,12 +102,17 @@ export default function BudgetDetailPage({
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
 
-  const { data: budget, isLoading: isLoadingBudget, isError: isErrorBudget } = useGetBudget(budgetId);
-  const { data: transactions = [], isLoading: isLoadingTransactions } = useGetTransactions(budgetId);
-  
+  const {
+    data: budget,
+    isLoading: isLoadingBudget,
+    isError: isErrorBudget,
+  } = useGetBudget(budgetId);
+  const { data: transactions = [], isLoading: isLoadingTransactions } =
+    useGetTransactions(budgetId);
+
   const updateBudget = useUpdateBudget(budgetId);
   const deleteBudget = useDeleteBudget();
-  
+
   const createTransaction = useCreateTransaction();
   const deleteTransaction = useDeleteTransaction();
 
@@ -126,7 +135,9 @@ export default function BudgetDetailPage({
     category: "",
   });
 
-  const [budgetFormData, setBudgetFormData] = React.useState<Omit<Budget, "id" | "userId">>({
+  const [budgetFormData, setBudgetFormData] = React.useState<
+    Omit<Budget, "id" | "userId">
+  >({
     name: "",
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
@@ -272,12 +283,17 @@ export default function BudgetDetailPage({
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
             <p className="text-muted-foreground text-xs">
-              {MONTHS[budget.month - 1]} {budget.year} • Detailed view of your transactions.
+              {MONTHS[budget.month - 1]} {budget.year} • Detailed view of your
+              transactions.
             </p>
           </div>
           <div className="flex items-center gap-2">
             {session?.user && <UserNav user={session.user} />}
-            <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
+            <Button
+              onClick={() => setIsDialogOpen(true)}
+              size="sm"
+              className="gap-2"
+            >
               <Plus className="h-4 w-4" /> Add Transaction
             </Button>
             <DropdownMenu>
@@ -309,7 +325,7 @@ export default function BudgetDetailPage({
       <Card className="bg-muted/40 border-none shadow-none">
         <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
           <div className="px-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-3 py-4">
+            <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
                 <Wallet className="h-8 w-8 text-primary" />
               </div>
@@ -406,11 +422,12 @@ export default function BudgetDetailPage({
               transaction.type === "income" ? totalIncome : totalExpense;
             const percentage =
               totalForType > 0 ? (transaction.amount / totalForType) * 100 : 0;
-            
+
             const width = 28;
             const height = 28;
             const rx = 8;
-            const perimeter = 2 * (width - 2 * rx) + 2 * (height - 2 * rx) + 2 * Math.PI * rx;
+            const perimeter =
+              2 * (width - 2 * rx) + 2 * (height - 2 * rx) + 2 * Math.PI * rx;
             const offset = perimeter - (percentage / 100) * perimeter;
 
             return (
@@ -454,10 +471,10 @@ export default function BudgetDetailPage({
                         stroke="currentColor"
                         strokeWidth="1.5"
                         strokeDasharray={perimeter}
-                        style={{ 
+                        style={{
                           strokeDashoffset: offset,
                           transformOrigin: "center",
-                          transform: "rotate(-90deg)"
+                          transform: "rotate(-90deg)",
                         }}
                         className={cn(
                           "transition-all duration-1000 ease-in-out",
@@ -484,51 +501,52 @@ export default function BudgetDetailPage({
                   </div>
                 </ItemMedia>
                 <ItemContent>
-                <ItemTitle>{transaction.name}</ItemTitle>
-                <ItemDescription>
-                  {transaction.category} • {transaction.date}
-                </ItemDescription>
-              </ItemContent>
-              <div className="flex flex-col items-end mr-4">
-                <span
-                  className={cn(
-                    "text-sm font-semibold",
-                    transaction.type === "income"
-                      ? "text-emerald-600"
-                      : "text-destructive",
-                  )}
-                >
-                  {transaction.type === "income" ? "+" : "-"}$
-                  {transaction.amount.toLocaleString()}
-                </span>
-              </div>
-              <ItemActions>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon-sm">
-                      <span className="sr-only">Open menu</span>
-                      <MoreHorizontal />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                    <DropdownMenuItem onClick={() => handleEdit(transaction)}>
-                      <Pencil className="mr-2 h-4 w-4" />
-                      Edit
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      className="text-destructive focus:text-destructive"
-                      onClick={() => handleDelete(transaction.id)}
-                    >
-                      <Trash2 className="mr-2 h-4 w-4" />
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </ItemActions>
-            </Item>
-          )})}
+                  <ItemTitle>{transaction.name}</ItemTitle>
+                  <ItemDescription>
+                    {transaction.category} • {transaction.date}
+                  </ItemDescription>
+                </ItemContent>
+                <div className="flex flex-col items-end mr-4">
+                  <span
+                    className={cn(
+                      "text-sm font-semibold",
+                      transaction.type === "income"
+                        ? "text-emerald-600"
+                        : "text-destructive",
+                    )}
+                  >
+                    {transaction.type === "income" ? "+" : "-"}$
+                    {transaction.amount.toLocaleString()}
+                  </span>
+                </div>
+                <ItemActions>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon-sm">
+                        <span className="sr-only">Open menu</span>
+                        <MoreHorizontal />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                      <DropdownMenuItem onClick={() => handleEdit(transaction)}>
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem
+                        className="text-destructive focus:text-destructive"
+                        onClick={() => handleDelete(transaction.id)}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </ItemActions>
+              </Item>
+            );
+          })}
         </ItemGroup>
       )}
 
@@ -620,8 +638,15 @@ export default function BudgetDetailPage({
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit" disabled={createTransaction.isPending || updateTransaction.isPending}>
-                {(createTransaction.isPending || updateTransaction.isPending) && (
+              <Button
+                size="sm"
+                type="submit"
+                disabled={
+                  createTransaction.isPending || updateTransaction.isPending
+                }
+              >
+                {(createTransaction.isPending ||
+                  updateTransaction.isPending) && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 {editingTransaction ? "Save changes" : "Add Transaction"}
@@ -652,7 +677,10 @@ export default function BudgetDetailPage({
                   id="b-name"
                   value={budgetFormData.name}
                   onChange={(e) =>
-                    setBudgetFormData({ ...budgetFormData, name: e.target.value })
+                    setBudgetFormData({
+                      ...budgetFormData,
+                      name: e.target.value,
+                    })
                   }
                   placeholder="e.g. Monthly Expenses"
                   required
@@ -664,7 +692,10 @@ export default function BudgetDetailPage({
                   <Select
                     value={budgetFormData.month.toString()}
                     onValueChange={(val) =>
-                      setBudgetFormData({ ...budgetFormData, month: parseInt(val) })
+                      setBudgetFormData({
+                        ...budgetFormData,
+                        month: parseInt(val),
+                      })
                     }
                   >
                     <SelectTrigger id="b-month">
@@ -684,7 +715,10 @@ export default function BudgetDetailPage({
                   <Select
                     value={budgetFormData.year.toString()}
                     onValueChange={(val) =>
-                      setBudgetFormData({ ...budgetFormData, year: parseInt(val) })
+                      setBudgetFormData({
+                        ...budgetFormData,
+                        year: parseInt(val),
+                      })
                     }
                   >
                     <SelectTrigger id="b-year">
