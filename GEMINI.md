@@ -8,6 +8,8 @@ A modern budget tracking application built with Next.js, focused on providing a 
 ## Tech Stack
 - **Framework:** [Next.js 15.1.x](https://nextjs.org/) (App Router)
 - **Language:** [TypeScript](https://www.typescriptlang.org/)
+- **Database:** [Turso](https://turso.tech/) (SQLite)
+- **ORM:** [Drizzle ORM](https://orm.drizzle.team/)
 - **Styling:** [Tailwind CSS 4.0](https://tailwindcss.com/)
 - **UI Components:** [shadcn/ui](https://ui.shadcn.com/) (using Radix Mira style)
 - **Icons:** [Lucide React](https://lucide.dev/)
@@ -18,6 +20,7 @@ A modern budget tracking application built with Next.js, focused on providing a 
 - `components/`: Reusable React components.
   - `ui/`: shadcn/ui base components.
 - `lib/`: Utility functions and shared logic.
+  - `db/`: Database schema and client configuration.
 - `public/`: Static assets.
 
 ## Coding Standards & Conventions
@@ -27,18 +30,27 @@ A modern budget tracking application built with Next.js, focused on providing a 
   - Components: PascalCase (e.g., `BudgetTable.tsx`).
   - Functions/Variables: camelCase.
   - Files: kebab-case or PascalCase (matching component name).
+  - Database Tables/Columns: snake_case in schema definition.
 - **Icons:** Always use `lucide-react` for icons.
+- **Database:** 
+  - Use `@paralleldrive/cuid2` for generating primary keys in the schema.
+  - Define tables in `lib/db/schema.ts`.
+  - Use the `db` instance from `lib/db/index.ts` for all queries.
 
 ## Common Commands
 - `bun dev`: Start the development server.
 - `bun run build`: Build the application for production.
 - `bun run lint`: Run ESLint for code quality checks.
+- `bunx drizzle-kit push`: Sync schema changes to the Turso database.
+- `bun run db:seed`: Seed the database with initial mock data.
 - `bunx shadcn@latest add <component>`: Add new shadcn/ui components.
 
 ## Gemini Instructions
 - **STRICTLY** use `bun` for all package management and script execution. NEVER use `npm`, `yarn`, or `npx`.
 - When adding new features, prioritize using existing shadcn/ui components or adding new ones from the registry if needed.
 - **NEVER** update shadcn component files (located in `components/ui/`) unless explicitly requested by the user.
+- **Database Changes:** Always update `lib/db/schema.ts` and run `bunx drizzle-kit push` to sync changes.
+- **Types:** Use `InferSelectModel` and `InferInsertModel` from `drizzle-orm` in `lib/types.ts` to keep types in sync with the schema.
 - Ensure all new components are properly typed with TypeScript.
 - Follow the App Router conventions for data fetching and routing.
 - Keep the UI consistent with the "radix-mira" style defined in `components.json`.
