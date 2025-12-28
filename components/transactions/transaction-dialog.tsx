@@ -17,6 +17,7 @@ import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { NumericFormat } from "react-number-format";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { ButtonGroup } from "@/components/ui/button-group";
 import {
   useCreateTransaction,
   useUpdateTransaction,
@@ -112,6 +113,29 @@ export function TransactionDialog({
         <form onSubmit={handleSave}>
           <FieldGroup className="py-2">
             <Field>
+              <FieldLabel>Transaction Type</FieldLabel>
+              <ButtonGroup className="w-full">
+                <Button
+                  type="button"
+                  variant={formData.type === "expense" ? "default" : "outline"}
+                  className="flex-1 h-10 gap-2 text-sm"
+                  onClick={() => setFormData({ ...formData, type: "expense" })}
+                >
+                  <TrendingDown className="size-4" />
+                  Expense
+                </Button>
+                <Button
+                  type="button"
+                  variant={formData.type === "income" ? "default" : "outline"}
+                  className="flex-1 h-10 gap-2 text-sm"
+                  onClick={() => setFormData({ ...formData, type: "income" })}
+                >
+                  <TrendingUp className="size-4" />
+                  Income
+                </Button>
+              </ButtonGroup>
+            </Field>
+            <Field>
               <FieldLabel htmlFor="t-name">Name</FieldLabel>
               <Input
                 id="t-name"
@@ -135,54 +159,27 @@ export function TransactionDialog({
                 required
               />
             </Field>
-            <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
-                <NumericFormat
-                  id="t-amount"
-                  customInput={Input}
-                  value={formData.amount === 0 ? "" : formData.amount}
-                  onValueChange={(values) => {
-                    setFormData({
-                      ...formData,
-                      amount: values.floatValue || 0,
-                    });
-                  }}
-                  thousandSeparator="."
-                  decimalSeparator=","
-                  prefix="Rp "
-                  placeholder="Rp 0"
-                  decimalScale={2}
-                  fixedDecimalScale={false}
-                  required
-                />
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="t-type">Type</FieldLabel>
-                <div className="grid grid-cols-2 gap-2">
-                  <Button
-                    type="button"
-                    variant={formData.type === "expense" ? "default" : "outline"}
-                    size="sm"
-                    className="h-9 gap-1.5"
-                    onClick={() => setFormData({ ...formData, type: "expense" })}
-                  >
-                    <TrendingDown className="h-3.5 w-3.5" />
-                    Expense
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={formData.type === "income" ? "default" : "outline"}
-                    size="sm"
-                    className="h-9 gap-1.5"
-                    onClick={() => setFormData({ ...formData, type: "income" })}
-                  >
-                    <TrendingUp className="h-3.5 w-3.5" />
-                    Income
-                  </Button>
-                </div>
-              </Field>
-            </div>
+            <Field>
+              <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
+              <NumericFormat
+                id="t-amount"
+                customInput={Input}
+                value={formData.amount === 0 ? "" : formData.amount}
+                onValueChange={(values) => {
+                  setFormData({
+                    ...formData,
+                    amount: values.floatValue || 0,
+                  });
+                }}
+                thousandSeparator="."
+                decimalSeparator=","
+                prefix="Rp "
+                placeholder="Rp 0"
+                decimalScale={2}
+                fixedDecimalScale={false}
+                required
+              />
+            </Field>
           </FieldGroup>
           {!editingTransaction && (
             <div className="flex items-center space-x-2 px-1 mb-4">
