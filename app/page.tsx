@@ -114,7 +114,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 flex flex-col items-center gap-4">
           <div className="flex items-center gap-5">
             <Link
-              href="https://github.com/philldev"
+              href="https://github.com/deddywolley"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-500 hover:text-white transition-colors"
@@ -141,6 +141,13 @@ export default function LandingPage() {
               <span className="sr-only">Website</span>
             </Link>
           </div>
+          
+          <div className="flex items-center gap-4 text-[10px] text-neutral-500 uppercase tracking-widest">
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <span className="size-1 rounded-full bg-neutral-800" />
+            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+          </div>
+
           <p className="text-[10px] text-neutral-500 tracking-wide uppercase">
             &copy; {new Date().getFullYear()} Deddy Wolley
           </p>
