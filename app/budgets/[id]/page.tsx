@@ -412,7 +412,7 @@ export default function BudgetDetailPage({
                 <ItemContent>
                   <ItemTitle>{transaction.name}</ItemTitle>
                   <ItemDescription>
-                    {transaction.category} • {transaction.date}
+                    {transaction.category}
                   </ItemDescription>
                 </ItemContent>
                 <div className="flex flex-col items-end mr-4">
