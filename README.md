@@ -1,6 +1,12 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# BudgetApp
+
+This is a personal project built with Next.js, focused on providing a minimalist and efficient budget tracking experience.
+
+**Live Demo:** [budget-app.deddywolley.com](https://budget-app.deddywolley.com)
 
 ## Getting Started
+
+This project was bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 First, run the development server:
 
