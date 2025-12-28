@@ -59,43 +59,14 @@ import {
 } from "@/components/ui/input-group";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-
-// Mock data
-const MOCK_BUDGETS: Budget[] = [
-  { id: "1", name: "Personal Q1", month: 1, year: 2024 },
-  { id: "2", name: "Home Renovation", month: 3, year: 2024 },
-  { id: "3", name: "Vacation Fund", month: 6, year: 2024 },
-];
-
-const MOCK_TRANSACTIONS: Transaction[] = [
-  {
-    id: "t1",
-    budgetId: "1",
-    name: "Salary",
-    amount: 5000,
-    type: "income",
-    category: "Income",
-    date: "2024-01-01",
-  },
-  {
-    id: "t2",
-    budgetId: "1",
-    name: "Rent",
-    amount: 1500,
-    type: "expense",
-    category: "Housing",
-    date: "2024-01-02",
-  },
-  {
-    id: "t3",
-    budgetId: "1",
-    name: "Groceries",
-    amount: 400,
-    type: "expense",
-    category: "Food",
-    date: "2024-01-05",
-  },
-];
+import { useGetBudget, useUpdateBudget, useDeleteBudget } from "@/lib/hooks/use-budgets";
+import {
+  useGetTransactions,
+  useCreateTransaction,
+  useUpdateTransaction,
+  useDeleteTransaction,
+} from "@/lib/hooks/use-transactions";
+import { Loader2 } from "lucide-react";
 
 const MONTHS = [
   "January",
@@ -124,13 +95,14 @@ export default function BudgetDetailPage({
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
 
-  const [budget, setBudget] = React.useState<Budget | undefined>(
-    MOCK_BUDGETS.find((b) => b.id === budgetId),
-  );
-
-  const [transactions, setTransactions] = React.useState<Transaction[]>(
-    MOCK_TRANSACTIONS.filter((t) => t.budgetId === budgetId),
-  );
+  const { data: budget, isLoading: isLoadingBudget, isError: isErrorBudget } = useGetBudget(budgetId);
+  const { data: transactions = [], isLoading: isLoadingTransactions } = useGetTransactions(budgetId);
+  
+  const updateBudget = useUpdateBudget(budgetId);
+  const deleteBudget = useDeleteBudget();
+  
+  const createTransaction = useCreateTransaction();
+  const deleteTransaction = useDeleteTransaction();
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
@@ -138,6 +110,8 @@ export default function BudgetDetailPage({
   const [editingTransaction, setEditingTransaction] =
     React.useState<Transaction | null>(null);
   const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
+
+  const updateTransaction = useUpdateTransaction(editingTransaction?.id || "");
 
   // Form State
   const [formData, setFormData] = React.useState<
@@ -150,10 +124,21 @@ export default function BudgetDetailPage({
   });
 
   const [budgetFormData, setBudgetFormData] = React.useState<Omit<Budget, "id">>({
-    name: budget?.name || "",
-    month: budget?.month || new Date().getMonth() + 1,
-    year: budget?.year || new Date().getFullYear(),
+    name: "",
+    month: new Date().getMonth() + 1,
+    year: new Date().getFullYear(),
   });
+
+  // Update budget form when data arrives
+  React.useEffect(() => {
+    if (budget) {
+      setBudgetFormData({
+        name: budget.name,
+        month: budget.month,
+        year: budget.year,
+      });
+    }
+  }, [budget]);
 
   const resetForm = () => {
     setFormData({
@@ -170,26 +155,22 @@ export default function BudgetDetailPage({
     if (!open) resetForm();
   };
 
-  const handleSave = () => {
-    if (editingTransaction) {
-      setTransactions((prev) =>
-        prev.map((t) =>
-          t.id === editingTransaction.id ? { ...t, ...formData } : t,
-        ),
-      );
-    } else {
-      setTransactions((prev) => [
-        ...prev,
-        {
+  const handleSave = async () => {
+    try {
+      if (editingTransaction) {
+        await updateTransaction.mutateAsync(formData);
+      } else {
+        await createTransaction.mutateAsync({
           ...formData,
-          id: Math.random().toString(36).substr(2, 9),
           budgetId,
           date: new Date().toISOString().split("T")[0],
-        },
-      ]);
+        });
+      }
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save transaction:", error);
     }
-    setIsDialogOpen(false);
-    resetForm();
   };
 
   const handleEdit = (transaction: Transaction) => {
@@ -203,20 +184,32 @@ export default function BudgetDetailPage({
     setIsDialogOpen(true);
   };
 
-  const handleSaveBudget = () => {
-    if (budget) {
-      setBudget({ ...budgetFormData, id: budget.id });
+  const handleSaveBudget = async () => {
+    try {
+      await updateBudget.mutateAsync(budgetFormData);
+      setIsBudgetDialogOpen(false);
+    } catch (error) {
+      console.error("Failed to update budget:", error);
     }
-    setIsBudgetDialogOpen(false);
   };
 
-  const handleDeleteBudget = () => {
-    // In a real app, you'd call an API here
-    router.push("/budgets");
+  const handleDeleteBudget = async () => {
+    if (confirm("Are you sure you want to delete this budget?")) {
+      try {
+        await deleteBudget.mutateAsync(budgetId);
+        router.push("/budgets");
+      } catch (error) {
+        console.error("Failed to delete budget:", error);
+      }
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setTransactions((prev) => prev.filter((t) => t.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteTransaction.mutateAsync({ id, budgetId });
+    } catch (error) {
+      console.error("Failed to delete transaction:", error);
+    }
   };
 
   const filteredTransactions = transactions.filter((t) =>
@@ -250,8 +243,16 @@ export default function BudgetDetailPage({
     }
   };
 
-  if (!budget) {
-    return <div className="p-6">Budget not found.</div>;
+  if (isLoadingBudget) {
+    return (
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
+
+  if (isErrorBudget || !budget) {
+    return <div className="p-6">Budget not found or failed to load.</div>;
   }
 
   return (
@@ -268,7 +269,7 @@ export default function BudgetDetailPage({
           <div>
             <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
             <p className="text-muted-foreground text-xs">
-              Detailed view of your transactions.
+              {MONTHS[budget.month - 1]} {budget.year} • Detailed view of your transactions.
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -304,7 +305,7 @@ export default function BudgetDetailPage({
       <Card className="bg-muted/40 border-none shadow-none">
         <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
           <div className="px-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 py-4">
               <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
                 <Wallet className="h-8 w-8 text-primary" />
               </div>
@@ -386,7 +387,11 @@ export default function BudgetDetailPage({
         </InputGroup>
       </div>
 
-      {filteredTransactions.length === 0 ? (
+      {isLoadingTransactions ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : filteredTransactions.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-sm border rounded-md border-dashed">
           No transactions found.
         </div>
@@ -611,7 +616,10 @@ export default function BudgetDetailPage({
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" disabled={createTransaction.isPending || updateTransaction.isPending}>
+                {(createTransaction.isPending || updateTransaction.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {editingTransaction ? "Save changes" : "Add Transaction"}
               </Button>
             </DialogFooter>
@@ -698,7 +706,10 @@ export default function BudgetDetailPage({
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" disabled={updateBudget.isPending}>
+                {updateBudget.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Save changes
               </Button>
             </DialogFooter>

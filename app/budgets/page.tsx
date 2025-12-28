@@ -61,6 +61,14 @@ import {
   InputGroupInput,
 } from "@/components/ui/input-group";
 
+import {
+  useGetBudgets,
+  useCreateBudget,
+  useUpdateBudget,
+  useDeleteBudget,
+} from "@/lib/hooks/use-budgets";
+import { Loader2 } from "lucide-react";
+
 const MONTHS = [
   "January",
   "February",
@@ -79,18 +87,16 @@ const MONTHS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
-// Mock initial data
-const INITIAL_BUDGETS: Budget[] = [
-  { id: "1", name: "Personal Q1", month: 1, year: 2024 },
-  { id: "2", name: "Home Renovation", month: 3, year: 2024 },
-  { id: "3", name: "Vacation Fund", month: 6, year: 2024 },
-];
-
 export default function BudgetsPage() {
-  const [budgets, setBudgets] = React.useState<Budget[]>(INITIAL_BUDGETS);
+  const { data: budgets = [], isLoading, isError } = useGetBudgets();
+  const createBudget = useCreateBudget();
+  const deleteBudget = useDeleteBudget();
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingBudget, setEditingBudget] = React.useState<Budget | null>(null);
+
+  const updateBudget = useUpdateBudget(editingBudget?.id || "");
 
   // Form State
   const [formData, setFormData] = React.useState<Omit<Budget, "id">>({
@@ -115,21 +121,18 @@ export default function BudgetsPage() {
     if (!open) resetForm();
   };
 
-  const handleSave = () => {
-    if (editingBudget) {
-      setBudgets((prev) =>
-        prev.map((b) =>
-          b.id === editingBudget.id ? { ...formData, id: b.id } : b,
-        ),
-      );
-    } else {
-      setBudgets((prev) => [
-        ...prev,
-        { ...formData, id: Math.random().toString(36).substr(2, 9) },
-      ]);
+  const handleSave = async () => {
+    try {
+      if (editingBudget) {
+        await updateBudget.mutateAsync(formData);
+      } else {
+        await createBudget.mutateAsync(formData);
+      }
+      setIsDialogOpen(false);
+      resetForm();
+    } catch (error) {
+      console.error("Failed to save budget:", error);
     }
-    setIsDialogOpen(false);
-    resetForm();
   };
 
   const handleEdit = (budget: Budget) => {
@@ -142,8 +145,14 @@ export default function BudgetsPage() {
     setIsDialogOpen(true);
   };
 
-  const handleDelete = (id: string) => {
-    setBudgets((prev) => prev.filter((b) => b.id !== id));
+  const handleDelete = async (id: string) => {
+    if (confirm("Are you sure you want to delete this budget? All related transactions will be removed.")) {
+      try {
+        await deleteBudget.mutateAsync(id);
+      } catch (error) {
+        console.error("Failed to delete budget:", error);
+      }
+    }
   };
 
   const filteredBudgets = budgets.filter((budget) => {
@@ -199,7 +208,15 @@ export default function BudgetsPage() {
         </Select>
       </div>
 
-      {filteredBudgets.length === 0 ? (
+      {isLoading ? (
+        <div className="flex items-center justify-center py-20">
+          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        </div>
+      ) : isError ? (
+        <div className="text-center py-10 text-destructive text-sm border rounded-md border-dashed border-destructive/50">
+          Failed to load budgets. Please try again.
+        </div>
+      ) : filteredBudgets.length === 0 ? (
         <div className="text-center py-10 text-muted-foreground text-sm border rounded-md border-dashed">
           No budgets found.
         </div>
@@ -341,7 +358,10 @@ export default function BudgetsPage() {
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" disabled={createBudget.isPending || updateBudget.isPending}>
+                {(createBudget.isPending || updateBudget.isPending) && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 {editingBudget ? "Save changes" : "Create Budget"}
               </Button>
             </DialogFooter>
