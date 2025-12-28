@@ -1,80 +1,150 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Link from "next/link";
-import { ArrowRight, Wallet, TrendingUp, Shield } from "lucide-react";
+import { ArrowRight, Shield, Wallet, TrendingUp, Sparkles } from "lucide-react";
+import { SiGithub, SiX } from "react-icons/si";
+import { FaGlobe } from "react-icons/fa6";
 import { authClient } from "@/lib/auth-client";
 import { SignInButton } from "@/components/auth/auth-buttons";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 
 export default function LandingPage() {
   const { data: session, isPending } = authClient.useSession();
 
   return (
-    <div className="flex flex-col min-h-screen items-center justify-center p-4">
-      <div className="w-full max-w-md space-y-4">
-        <div className="text-center space-y-2 mb-6">
-          <h1 className="text-2xl font-semibold tracking-tight">BudgetApp</h1>
-          <p className="text-sm text-muted-foreground">
-            A compact tool for personal finance management.
-          </p>
-        </div>
-
-        <Card className="border-border/50">
-          <CardHeader className="pb-4">
-            <CardTitle className="text-lg">Get Started</CardTitle>
-            <CardDescription className="text-xs">
-              Take control of your spending with our minimalist dashboard.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid gap-3">
-              <div className="flex items-start gap-3 rounded-md border p-3">
-                <Wallet className="mt-0.5 size-4 text-primary" />
-                <div className="space-y-0.5">
-                  <p className="text-xs font-medium">Visual Tracking</p>
-                  <p className="text-[11px] text-muted-foreground">Monitor budgets with high-density views.</p>
-                </div>
+    <div className="flex flex-col min-h-screen">
+      <main className="flex-1 flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-sm space-y-12">
+          {/* Hero Section */}
+          <div className="text-center space-y-6">
+            <div className="space-y-3">
+              <div className="flex justify-center">
+                <Badge
+                  variant="secondary"
+                  className="px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider"
+                >
+                  Personal Project
+                </Badge>
               </div>
-              <div className="flex items-start gap-3 rounded-md border p-3">
-                <TrendingUp className="mt-0.5 size-4 text-primary" />
-                <div className="space-y-0.5">
-                  <p className="text-xs font-medium">Expense Analysis</p>
-                  <p className="text-[11px] text-muted-foreground">Understand your habits through clean data.</p>
-                </div>
-              </div>
+              <h1 className="text-2xl font-semibold tracking-tight">
+                BudgetApp
+              </h1>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                A minimalist, high-density tool for personal finance management.
+                Built with Next.js, Turso, and Better-Auth.
+              </p>
             </div>
-            
-            <div className="pt-2">
+
+            <div className="flex flex-col items-center gap-4">
               {isPending ? (
-                <Skeleton className="h-7 w-full rounded-md" />
+                <Skeleton className="h-10 w-full rounded-md" />
               ) : session ? (
-                <Button asChild className="w-full" variant="secondary">
+                <Button
+                  asChild
+                  className="w-full h-10 shadow-sm"
+                  variant="default"
+                >
                   <Link href="/budgets">
-                    Go to Dashboard <ArrowRight className="ml-2 size-3" />
+                    Enter Dashboard <ArrowRight className="ml-2 size-3" />
                   </Link>
                 </Button>
               ) : (
-                <div className="flex flex-col gap-2">
-                   <SignInButton />
-                </div>
+                <SignInButton />
               )}
-            </div>
-          </CardContent>
-        </Card>
 
-        <div className="flex justify-center gap-4 text-[11px] text-muted-foreground">
-          <div className="flex items-center gap-1">
-            <Shield className="size-3" />
-            Secure by Turso
+              <div className="flex items-center gap-4 text-[11px] text-muted-foreground/60">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="size-3" />
+                  <span>Secure & Private</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="size-1 rounded-full bg-border" />
+                  <span>Open Source</span>
+                </div>
+              </div>
+            </div>
           </div>
-          <div className="flex items-center gap-1">
-            <span>•</span>
-            Minimalist Design
+
+          {/* Features Section */}
+          <div className="grid gap-6 pt-4">
+            <div className="flex items-start gap-4">
+              <div className="size-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10 shrink-0">
+                <Wallet className="size-4 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xs font-medium">Budget Management</h3>
+                <p className="text-[11px] text-muted-foreground leading-normal">
+                  Set monthly goals and track categories with high-density
+                  views.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="size-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10 shrink-0">
+                <TrendingUp className="size-4 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xs font-medium">Expense Analytics</h3>
+                <p className="text-[11px] text-muted-foreground leading-normal">
+                  Visualize your spending patterns with clean, minimal charts.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-start gap-4">
+              <div className="size-8 rounded-lg bg-primary/5 flex items-center justify-center border border-primary/10 shrink-0">
+                <Sparkles className="size-4 text-primary" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="text-xs font-medium">Refined UX</h3>
+                <p className="text-[11px] text-muted-foreground leading-normal">
+                  Focused on utility and speed for quick daily entries.
+                </p>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
+      </main>
+
+      <footer className="w-full border-t border-border/40 py-8">
+        <div className="container mx-auto px-4 flex flex-col items-center gap-4">
+          <div className="flex items-center gap-5">
+            <Link
+              href="https://github.com/philldev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <SiGithub className="size-4" />
+              <span className="sr-only">GitHub</span>
+            </Link>
+            <Link
+              href="https://twitter.com/deddywolley"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <SiX className="size-3.5" />
+              <span className="sr-only">Twitter</span>
+            </Link>
+            <Link
+              href="https://deddywolley.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FaGlobe className="size-4" />
+              <span className="sr-only">Website</span>
+            </Link>
+          </div>
+          <p className="text-[10px] text-muted-foreground tracking-wide uppercase">
+            &copy; {new Date().getFullYear()} Deddy Wolley
+          </p>
+        </div>
+      </footer>
     </div>
   );
 }
