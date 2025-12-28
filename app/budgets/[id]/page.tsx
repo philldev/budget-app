@@ -2,6 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   Plus,
@@ -96,15 +97,34 @@ const MOCK_TRANSACTIONS: Transaction[] = [
   },
 ];
 
+const MONTHS = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
+
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
+
 export default function BudgetDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const router = useRouter();
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
 
-  const [budget] = React.useState<Budget | undefined>(
+  const [budget, setBudget] = React.useState<Budget | undefined>(
     MOCK_BUDGETS.find((b) => b.id === budgetId),
   );
 
@@ -114,6 +134,7 @@ export default function BudgetDetailPage({
 
   const [searchQuery, setSearchQuery] = React.useState("");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
+  const [isBudgetDialogOpen, setIsBudgetDialogOpen] = React.useState(false);
   const [editingTransaction, setEditingTransaction] =
     React.useState<Transaction | null>(null);
   const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
@@ -126,6 +147,12 @@ export default function BudgetDetailPage({
     amount: 0,
     type: "expense",
     category: "",
+  });
+
+  const [budgetFormData, setBudgetFormData] = React.useState<Omit<Budget, "id">>({
+    name: budget?.name || "",
+    month: budget?.month || new Date().getMonth() + 1,
+    year: budget?.year || new Date().getFullYear(),
   });
 
   const resetForm = () => {
@@ -174,6 +201,18 @@ export default function BudgetDetailPage({
       category: transaction.category,
     });
     setIsDialogOpen(true);
+  };
+
+  const handleSaveBudget = () => {
+    if (budget) {
+      setBudget({ ...budgetFormData, id: budget.id });
+    }
+    setIsBudgetDialogOpen(false);
+  };
+
+  const handleDeleteBudget = () => {
+    // In a real app, you'd call an API here
+    router.push("/budgets");
   };
 
   const handleDelete = (id: string) => {
@@ -236,6 +275,28 @@ export default function BudgetDetailPage({
             <Button onClick={() => setIsDialogOpen(true)} size="sm" className="gap-2">
               <Plus className="h-4 w-4" /> Add Transaction
             </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-sm">
+                  <MoreHorizontal />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Budget Options</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => setIsBudgetDialogOpen(true)}>
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Edit Budget
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-destructive focus:text-destructive"
+                  onClick={handleDeleteBudget}
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  Delete Budget
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -331,35 +392,89 @@ export default function BudgetDetailPage({
         </div>
       ) : (
         <ItemGroup>
-          {filteredTransactions.map((transaction) => (
-            <Item
-              key={transaction.id}
-              id={`transaction-${transaction.id}`}
-              variant="outline"
-              size="xs"
-              className={cn(
-                "justify-between transition-all duration-500",
-                highlightedId === transaction.id &&
-                  "bg-destructive/10 ring-2 ring-destructive/50 border-destructive/50",
-              )}
-            >
-              <ItemMedia>
-                <div
-                  className={cn(
-                    "flex h-9 w-9 items-center justify-center rounded-lg",
-                    transaction.type === "income"
-                      ? "bg-emerald-500/10"
-                      : "bg-destructive/10",
-                  )}
-                >
-                  {transaction.type === "income" ? (
-                    <TrendingUp className="h-5 w-5 text-emerald-600" />
-                  ) : (
-                    <TrendingDown className="h-5 w-5 text-destructive" />
-                  )}
-                </div>
-              </ItemMedia>
-              <ItemContent>
+          {filteredTransactions.map((transaction) => {
+            const totalForType =
+              transaction.type === "income" ? totalIncome : totalExpense;
+            const percentage =
+              totalForType > 0 ? (transaction.amount / totalForType) * 100 : 0;
+            
+            const width = 28;
+            const height = 28;
+            const rx = 8;
+            const perimeter = 2 * (width - 2 * rx) + 2 * (height - 2 * rx) + 2 * Math.PI * rx;
+            const offset = perimeter - (percentage / 100) * perimeter;
+
+            return (
+              <Item
+                key={transaction.id}
+                id={`transaction-${transaction.id}`}
+                variant="outline"
+                size="xs"
+                className={cn(
+                  "justify-between transition-all duration-500",
+                  highlightedId === transaction.id &&
+                    "bg-destructive/10 ring-2 ring-destructive/50 border-destructive/50",
+                )}
+              >
+                <ItemMedia>
+                  <div className="relative flex items-center justify-center p-1">
+                    <svg
+                      className="absolute transition-all duration-500"
+                      width="30"
+                      height="30"
+                      viewBox="0 0 30 30"
+                    >
+                      <rect
+                        x="1"
+                        y="1"
+                        width={width}
+                        height={height}
+                        rx={rx}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        className="text-muted/10"
+                      />
+                      <rect
+                        x="1"
+                        y="1"
+                        width={width}
+                        height={height}
+                        rx={rx}
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.5"
+                        strokeDasharray={perimeter}
+                        style={{ 
+                          strokeDashoffset: offset,
+                          transformOrigin: "center",
+                          transform: "rotate(-90deg)"
+                        }}
+                        className={cn(
+                          "transition-all duration-1000 ease-in-out",
+                          transaction.type === "income"
+                            ? "text-emerald-500"
+                            : "text-destructive",
+                        )}
+                      />
+                    </svg>
+                    <div
+                      className={cn(
+                        "flex h-7 w-7 items-center justify-center rounded-lg z-10",
+                        transaction.type === "income"
+                          ? "bg-emerald-500/10"
+                          : "bg-destructive/10",
+                      )}
+                    >
+                      {transaction.type === "income" ? (
+                        <TrendingUp className="h-4 w-4 text-emerald-600" />
+                      ) : (
+                        <TrendingDown className="h-4 w-4 text-destructive" />
+                      )}
+                    </div>
+                  </div>
+                </ItemMedia>
+                <ItemContent>
                 <ItemTitle>{transaction.name}</ItemTitle>
                 <ItemDescription>
                   {transaction.category} • {transaction.date}
@@ -404,7 +519,7 @@ export default function BudgetDetailPage({
                 </DropdownMenu>
               </ItemActions>
             </Item>
-          ))}
+          )})}
         </ItemGroup>
       )}
 
@@ -498,6 +613,93 @@ export default function BudgetDetailPage({
               </Button>
               <Button size="sm" type="submit">
                 {editingTransaction ? "Save changes" : "Add Transaction"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isBudgetDialogOpen} onOpenChange={setIsBudgetDialogOpen}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle>Edit Budget</DialogTitle>
+            <DialogDescription>
+              Update your budget details below.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSaveBudget();
+            }}
+          >
+            <FieldGroup className="py-2">
+              <Field>
+                <FieldLabel htmlFor="b-name">Name</FieldLabel>
+                <Input
+                  id="b-name"
+                  value={budgetFormData.name}
+                  onChange={(e) =>
+                    setBudgetFormData({ ...budgetFormData, name: e.target.value })
+                  }
+                  placeholder="e.g. Monthly Expenses"
+                  required
+                />
+              </Field>
+              <div className="grid grid-cols-2 gap-4">
+                <Field>
+                  <FieldLabel htmlFor="b-month">Month</FieldLabel>
+                  <Select
+                    value={budgetFormData.month.toString()}
+                    onValueChange={(val) =>
+                      setBudgetFormData({ ...budgetFormData, month: parseInt(val) })
+                    }
+                  >
+                    <SelectTrigger id="b-month">
+                      <SelectValue placeholder="Select month" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MONTHS.map((month, index) => (
+                        <SelectItem key={month} value={(index + 1).toString()}>
+                          {month}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <Field>
+                  <FieldLabel htmlFor="b-year">Year</FieldLabel>
+                  <Select
+                    value={budgetFormData.year.toString()}
+                    onValueChange={(val) =>
+                      setBudgetFormData({ ...budgetFormData, year: parseInt(val) })
+                    }
+                  >
+                    <SelectTrigger id="b-year">
+                      <SelectValue placeholder="Select year" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {YEARS.map((year) => (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+            </FieldGroup>
+            <DialogFooter className="mt-4">
+              <Button
+                variant="outline"
+                size="sm"
+                type="button"
+                onClick={() => setIsBudgetDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button size="sm" type="submit">
+                Save changes
               </Button>
             </DialogFooter>
           </form>
