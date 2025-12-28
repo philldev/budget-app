@@ -33,9 +33,10 @@ A modern budget tracking application built with Next.js, focused on providing a 
 - `bun dev`: Start the development server.
 - `bun run build`: Build the application for production.
 - `bun run lint`: Run ESLint for code quality checks.
-- `npx shadcn@latest add <component>`: Add new shadcn/ui components.
+- `bunx shadcn@latest add <component>`: Add new shadcn/ui components.
 
 ## Gemini Instructions
+- **STRICTLY** use `bun` for all package management and script execution. NEVER use `npm`, `yarn`, or `npx`.
 - When adding new features, prioritize using existing shadcn/ui components or adding new ones from the registry if needed.
 - **NEVER** update shadcn component files (located in `components/ui/`) unless explicitly requested by the user.
 - Ensure all new components are properly typed with TypeScript.
