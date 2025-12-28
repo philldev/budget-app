@@ -126,7 +126,7 @@ export default function BudgetDetailPage({
     category: "",
   });
 
-  const [budgetFormData, setBudgetFormData] = React.useState<Omit<Budget, "id">>({
+  const [budgetFormData, setBudgetFormData] = React.useState<Omit<Budget, "id" | "userId">>({
     name: "",
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),

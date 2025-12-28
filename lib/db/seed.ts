@@ -1,5 +1,5 @@
 import { db } from "./index";
-import { budgets, transactions } from "./schema";
+import { budgets, transactions, user } from "./schema";
 import { createId } from "@paralleldrive/cuid2";
 
 async function main() {
@@ -8,12 +8,24 @@ async function main() {
   // Clear existing data
   await db.delete(transactions);
   await db.delete(budgets);
+  await db.delete(user);
+
+  // Seed User
+  const dummyUserId = createId();
+  await db.insert(user).values({
+    id: dummyUserId,
+    name: "Seed User",
+    email: "seed@example.com",
+    emailVerified: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   // Seed Budgets
   const budgetData = [
-    { id: createId(), name: "Personal Q1", month: 1, year: 2024 },
-    { id: createId(), name: "Home Renovation", month: 3, year: 2024 },
-    { id: createId(), name: "Vacation Fund", month: 6, year: 2024 },
+    { id: createId(), name: "Personal Q1", month: 1, year: 2024, userId: dummyUserId },
+    { id: createId(), name: "Home Renovation", month: 3, year: 2024, userId: dummyUserId },
+    { id: createId(), name: "Vacation Fund", month: 6, year: 2024, userId: dummyUserId },
   ];
 
   await db.insert(budgets).values(budgetData);

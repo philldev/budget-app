@@ -54,6 +54,7 @@ A modern budget tracking application built with Next.js, focused on providing a 
 - Ensure all new components are properly typed with TypeScript.
 - Follow the App Router conventions for data fetching and routing.
 - Keep the UI consistent with the "radix-mira" style defined in `components.json`.
+- **Git Commits:** **NEVER** commit changes to the repository unless explicitly requested by the user. When requested, always propose a draft commit message first.
 
 ## UI & Styling Standards
 

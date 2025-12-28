@@ -102,7 +102,7 @@ export default function BudgetsPage() {
   const updateBudget = useUpdateBudget(editingBudget?.id || "");
 
   // Form State
-  const [formData, setFormData] = React.useState<Omit<Budget, "id">>({
+  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>({
     name: "",
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),

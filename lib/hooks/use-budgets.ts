@@ -28,7 +28,7 @@ export function useCreateBudget() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (newBudget: NewBudget) => {
+    mutationFn: async (newBudget: Omit<NewBudget, "userId">) => {
       const response = await fetch("/api/budgets", {
         method: "POST",
         body: JSON.stringify(newBudget),
@@ -46,7 +46,7 @@ export function useUpdateBudget(id: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (updates: Partial<NewBudget>) => {
+    mutationFn: async (updates: Partial<Omit<NewBudget, "userId">>) => {
       const response = await fetch(`/api/budgets/${id}`, {
         method: "PATCH",
         body: JSON.stringify(updates),
