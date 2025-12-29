@@ -1,10 +1,8 @@
 "use client";
 
 import * as React from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
-  ArrowLeft,
   Plus,
   Search,
   Filter,
@@ -44,12 +42,11 @@ import {
   useDeleteTransaction,
 } from "@/lib/hooks/use-transactions";
 import { Loader2 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
-import { UserNav } from "@/components/auth/user-nav";
 import { BudgetDialog } from "@/components/budgets/budget-dialog";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { TransactionList } from "@/components/transactions/transaction-list";
+import { DashboardHeader } from "@/components/shared/dashboard-header";
 
 const MONTHS = [
   "January",
@@ -71,7 +68,6 @@ export default function BudgetDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const { data: session } = authClient.useSession();
   const router = useRouter();
   const resolvedParams = React.use(params);
   const budgetId = resolvedParams.id;
@@ -207,23 +203,12 @@ export default function BudgetDetailPage({
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-4 max-w-xl">
-      <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit">
-          <ArrowLeft className="h-4 w-4" />
-          <Link href="/budgets" className="text-sm font-medium">
-            Back to Budgets
-          </Link>
-        </div>
-
-        <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{budget.name}</h1>
-            <p className="text-muted-foreground text-xs">
-              {MONTHS[budget.month - 1]} {budget.year} • Detailed view of your
-              transactions.
-            </p>
-          </div>
+    <>
+      <DashboardHeader
+        title={budget.name}
+        description={`${MONTHS[budget.month - 1]} ${budget.year} • Detailed view of your transactions.`}
+        backLink={{ href: "/budgets", label: "Back to Budgets" }}
+        actions={
           <div className="flex items-center gap-2">
             <Button
               onClick={() => {
@@ -257,10 +242,9 @@ export default function BudgetDetailPage({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {session?.user && <UserNav user={session.user} />}
           </div>
-        </div>
-      </div>
+        }
+      />
 
       <Card className="bg-muted/40 border-none shadow-none">
         <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
@@ -396,6 +380,6 @@ export default function BudgetDetailPage({
         title="Delete Transaction?"
         description="Are you sure you want to delete this transaction? This action cannot be undone."
       />
-    </div>
+    </>
   );
 }

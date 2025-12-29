@@ -45,10 +45,9 @@ import {
 } from "@/components/ui/input-group";
 import { useGetBudgets, useDeleteBudget } from "@/lib/hooks/use-budgets";
 import { Loader2 } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
-import { UserNav } from "@/components/auth/user-nav";
 import { BudgetDialog } from "@/components/budgets/budget-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
+import { DashboardHeader } from "@/components/shared/dashboard-header";
 
 const MONTHS = [
   "January",
@@ -69,7 +68,6 @@ const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 export default function BudgetsPage() {
-  const { data: session } = authClient.useSession();
   const { data: budgets = [], isLoading, isError } = useGetBudgets();
   const deleteBudget = useDeleteBudget();
 
@@ -132,15 +130,11 @@ export default function BudgetsPage() {
     });
 
   return (
-    <div className="container mx-auto p-6 space-y-4 max-w-xl">
-      <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
-          <p className="text-muted-foreground text-xs">
-            Manage your monthly budgets.
-          </p>
-        </div>
-        <div className="flex items-center gap-2">
+    <>
+      <DashboardHeader
+        title="Budgets"
+        description="Manage your monthly budgets."
+        actions={
           <Button
             onClick={() => {
               setEditingBudget(null);
@@ -151,9 +145,8 @@ export default function BudgetsPage() {
           >
             <Plus className="h-4 w-4" /> Create Budget
           </Button>
-          {session?.user && <UserNav user={session.user} />}
-        </div>
-      </div>
+        }
+      />
 
       <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
         <InputGroup className="w-full sm:w-[300px]">
@@ -286,6 +279,6 @@ export default function BudgetsPage() {
         title="Delete Budget?"
         description="Are you sure you want to delete this budget? All related transactions will be removed. This action cannot be undone."
       />
-    </div>
+    </>
   );
 }
