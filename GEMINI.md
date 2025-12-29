@@ -36,6 +36,23 @@ A modern budget tracking application built with Next.js, focused on providing a 
   - Use `@paralleldrive/cuid2` for generating primary keys in the schema.
   - Define tables in `lib/db/schema.ts`.
   - Use the `db` instance from `lib/db/index.ts` for all queries.
+- **Forms & Validation:**
+  - Use `react-hook-form` with `zod` for validation.
+  - Adhere to the Radix Mira form pattern using `Controller` and `Field` components.
+  - **Pattern:**
+    ```tsx
+    <Controller
+      name="fieldName"
+      control={form.control}
+      render={({ field, fieldState }) => (
+        <Field data-invalid={fieldState.invalid}>
+          <FieldLabel>Label</FieldLabel>
+          <Input {...field} aria-invalid={fieldState.invalid} />
+          <FieldError errors={[fieldState.error]} />
+        </Field>
+      )}
+    />
+    ```
 
 ## Common Commands
 - `bun dev`: Start the development server.
