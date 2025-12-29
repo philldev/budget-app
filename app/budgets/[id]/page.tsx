@@ -49,10 +49,7 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import {
-  useGetBudget,
-  useDeleteBudget,
-} from "@/lib/hooks/use-budgets";
+import { useGetBudget, useDeleteBudget } from "@/lib/hooks/use-budgets";
 import {
   useGetTransactions,
   useDeleteTransaction,
@@ -108,9 +105,13 @@ export default function BudgetDetailPage({
     React.useState<Transaction | null>(null);
   const [highlightedId, setHighlightedId] = React.useState<string | null>(null);
 
-  const [isDeleteBudgetDialogOpen, setIsDeleteBudgetDialogOpen] = React.useState(false);
-  const [isDeleteTransactionDialogOpen, setIsDeleteTransactionDialogOpen] = React.useState(false);
-  const [transactionToDelete, setTransactionToDelete] = React.useState<string | null>(null);
+  const [isDeleteBudgetDialogOpen, setIsDeleteBudgetDialogOpen] =
+    React.useState(false);
+  const [isDeleteTransactionDialogOpen, setIsDeleteTransactionDialogOpen] =
+    React.useState(false);
+  const [transactionToDelete, setTransactionToDelete] = React.useState<
+    string | null
+  >(null);
 
   const handleEdit = (transaction: Transaction) => {
     setEditingTransaction(transaction);
@@ -134,7 +135,10 @@ export default function BudgetDetailPage({
   const handleConfirmDeleteTransaction = async () => {
     if (!transactionToDelete) return;
     try {
-      await deleteTransaction.mutateAsync({ id: transactionToDelete, budgetId });
+      await deleteTransaction.mutateAsync({
+        id: transactionToDelete,
+        budgetId,
+      });
       setTransactionToDelete(null);
     } catch (error) {
       console.error("Failed to delete transaction:", error);
@@ -213,7 +217,7 @@ export default function BudgetDetailPage({
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-4 max-w-5xl">
+    <div className="container mx-auto p-6 space-y-4 max-w-xl">
       <div className="flex flex-col gap-2">
         <div className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors w-fit">
           <ArrowLeft className="h-4 w-4" />
@@ -270,7 +274,7 @@ export default function BudgetDetailPage({
 
       <Card className="bg-muted/40 border-none shadow-none">
         <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
-          <div className="px-4 flex flex-1 flex-col sm:flex-row sm:items-center justify-between gap-6">
+          <div className="px-4 flex flex-1 flex-col justify-between gap-6">
             <div className="flex items-center gap-3">
               <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
                 <Wallet className="h-8 w-8 text-primary" />
@@ -284,60 +288,53 @@ export default function BudgetDetailPage({
                 </h2>
               </div>
             </div>
-
-            <Separator
-              orientation="vertical"
-              className="h-10 hidden sm:block"
-            />
-
-            <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
-                  Income
-                </p>
-                <div className="flex items-center gap-1.5 text-emerald-600">
-                  <TrendingUp className="h-3.5 w-3.5" />
-                  <span className="text-sm font-bold">
-                    Rp {totalIncome.toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
-                  Expense
-                </p>
-                <div className="flex items-center gap-1.5 text-destructive">
-                  <TrendingDown className="h-3.5 w-3.5" />
-                  <span className="text-sm font-bold">
-                    Rp {totalExpense.toLocaleString("id-ID")}
-                  </span>
-                </div>
-              </div>
-              {highestExpenseTransaction && (
-                <button
-                  onClick={() =>
-                    scrollToTransaction(highestExpenseTransaction.id)
-                  }
-                  className="text-left group outline-none"
-                >
-                  <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 transition-colors group-hover:text-foreground">
-                    Highest
-                  </p>
-                  <div className="flex items-center gap-1.5 text-destructive leading-none">
-                    <TrendingDown className="h-3.5 w-3.5" />
-                    <span className="text-sm font-bold">
-                      Rp {highestExpenseTransaction.amount.toLocaleString("id-ID")}
-                    </span>
-                  </div>
-                  <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
-                    {highestExpenseTransaction.name}
-                  </p>
-                </button>
-              )}
-            </div>
           </div>
         </CardContent>
       </Card>
+
+      <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
+        <div>
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+            Income
+          </p>
+          <div className="flex items-center gap-1.5 text-emerald-600">
+            <TrendingUp className="h-3.5 w-3.5" />
+            <span className="text-sm font-bold">
+              Rp {totalIncome.toLocaleString("id-ID")}
+            </span>
+          </div>
+        </div>
+        <div>
+          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+            Expense
+          </p>
+          <div className="flex items-center gap-1.5 text-destructive">
+            <TrendingDown className="h-3.5 w-3.5" />
+            <span className="text-sm font-bold">
+              Rp {totalExpense.toLocaleString("id-ID")}
+            </span>
+          </div>
+        </div>
+        {highestExpenseTransaction && (
+          <button
+            onClick={() => scrollToTransaction(highestExpenseTransaction.id)}
+            className="text-left group outline-none"
+          >
+            <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 transition-colors group-hover:text-foreground">
+              Highest
+            </p>
+            <div className="flex items-center gap-1.5 text-destructive leading-none">
+              <TrendingDown className="h-3.5 w-3.5" />
+              <span className="text-sm font-bold">
+                Rp {highestExpenseTransaction.amount.toLocaleString("id-ID")}
+              </span>
+            </div>
+            <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
+              {highestExpenseTransaction.name}
+            </p>
+          </button>
+        )}
+      </div>
 
       <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
         <InputGroup className="w-full sm:w-[300px]">
@@ -352,13 +349,11 @@ export default function BudgetDetailPage({
           />
         </InputGroup>
         <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-[150px]">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <SelectValue placeholder="Sort by" />
-            </div>
+          <SelectTrigger className="w-full sm:w-fit">
+            <Filter className="h-4 w-4" />
+            <SelectValue placeholder="Sort by" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             <SelectItem value="date-desc">Newest First</SelectItem>
             <SelectItem value="date-asc">Oldest First</SelectItem>
             <SelectItem value="amount-desc">Amount: High-Low</SelectItem>
@@ -466,9 +461,7 @@ export default function BudgetDetailPage({
                 </ItemMedia>
                 <ItemContent>
                   <ItemTitle>{transaction.name}</ItemTitle>
-                  <ItemDescription>
-                    {transaction.category}
-                  </ItemDescription>
+                  <ItemDescription>{transaction.category}</ItemDescription>
                 </ItemContent>
                 <div className="flex flex-col items-end mr-4">
                   <span
@@ -501,7 +494,9 @@ export default function BudgetDetailPage({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         className="text-destructive focus:text-destructive"
-                        onClick={() => handleDeleteTransactionClick(transaction.id)}
+                        onClick={() =>
+                          handleDeleteTransactionClick(transaction.id)
+                        }
                       >
                         <Trash2 className="mr-2 h-4 w-4" />
                         Delete

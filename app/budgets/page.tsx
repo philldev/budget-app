@@ -43,10 +43,7 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
-import {
-  useGetBudgets,
-  useDeleteBudget,
-} from "@/lib/hooks/use-budgets";
+import { useGetBudgets, useDeleteBudget } from "@/lib/hooks/use-budgets";
 import { Loader2 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { UserNav } from "@/components/auth/user-nav";
@@ -80,7 +77,9 @@ export default function BudgetsPage() {
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [editingBudget, setEditingBudget] = React.useState<Budget | null>(null);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const [budgetToDelete, setBudgetToDelete] = React.useState<string | null>(null);
+  const [budgetToDelete, setBudgetToDelete] = React.useState<string | null>(
+    null,
+  );
 
   const [filterYear, setFilterYear] = React.useState<string>("all");
   const [sortBy, setSortBy] = React.useState<string>("date-desc");
@@ -133,7 +132,7 @@ export default function BudgetsPage() {
     });
 
   return (
-    <div className="container mx-auto p-6 space-y-4 max-w-5xl">
+    <div className="container mx-auto p-6 space-y-4 max-w-xl">
       <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Budgets</h1>
@@ -170,13 +169,11 @@ export default function BudgetsPage() {
         </InputGroup>
         <div className="flex items-center gap-2 w-full sm:w-auto">
           <Select value={filterYear} onValueChange={setFilterYear}>
-            <SelectTrigger className="w-full sm:w-[120px]">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <SelectValue placeholder="Year" />
-              </div>
+            <SelectTrigger className="w-full sm:w-fit">
+              <Filter className="h-4 w-4" />
+              <SelectValue placeholder="Year" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="all">All Years</SelectItem>
               {YEARS.map((year) => (
                 <SelectItem key={year} value={year.toString()}>
@@ -186,13 +183,11 @@ export default function BudgetsPage() {
             </SelectContent>
           </Select>
           <Select value={sortBy} onValueChange={setSortBy}>
-            <SelectTrigger className="w-full sm:w-[150px]">
-              <div className="flex items-center gap-2">
-                <Filter className="h-4 w-4" />
-                <SelectValue placeholder="Sort by" />
-              </div>
+            <SelectTrigger className="w-full sm:w-fit">
+              <Filter className="h-4 w-4" />
+              <SelectValue placeholder="Sort by" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="date-desc">Newest First</SelectItem>
               <SelectItem value="date-asc">Oldest First</SelectItem>
               <SelectItem value="name-asc">Name: A-Z</SelectItem>
@@ -277,10 +272,10 @@ export default function BudgetsPage() {
         </ItemGroup>
       )}
 
-      <BudgetDialog 
-        open={isDialogOpen} 
-        onOpenChange={setIsDialogOpen} 
-        editingBudget={editingBudget} 
+      <BudgetDialog
+        open={isDialogOpen}
+        onOpenChange={setIsDialogOpen}
+        editingBudget={editingBudget}
       />
 
       <DeleteConfirmDialog
