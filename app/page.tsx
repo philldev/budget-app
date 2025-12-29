@@ -54,17 +54,6 @@ export default function LandingPage() {
               ) : (
                 <SignInButton />
               )}
-
-              <div className="flex items-center gap-4 text-[11px] text-neutral-500">
-                <div className="flex items-center gap-1.5">
-                  <Shield className="size-3" />
-                  <span>Secure & Private</span>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <div className="size-1 rounded-full bg-neutral-800" />
-                  <span>Open Source</span>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -75,7 +64,9 @@ export default function LandingPage() {
                 <Wallet className="size-4 text-white/80" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xs font-medium text-white/90">Budget Management</h3>
+                <h3 className="text-xs font-medium text-white/90">
+                  Budget Management
+                </h3>
                 <p className="text-[11px] text-neutral-400 leading-normal">
                   Set monthly goals and track categories with high-density
                   views.
@@ -88,7 +79,9 @@ export default function LandingPage() {
                 <TrendingUp className="size-4 text-white/80" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xs font-medium text-white/90">Expense Analytics</h3>
+                <h3 className="text-xs font-medium text-white/90">
+                  Expense Analytics
+                </h3>
                 <p className="text-[11px] text-neutral-400 leading-normal">
                   Visualize your spending patterns with clean, minimal charts.
                 </p>
@@ -100,7 +93,9 @@ export default function LandingPage() {
                 <Sparkles className="size-4 text-white/80" />
               </div>
               <div className="space-y-1">
-                <h3 className="text-xs font-medium text-white/90">Refined UX</h3>
+                <h3 className="text-xs font-medium text-white/90">
+                  Refined UX
+                </h3>
                 <p className="text-[11px] text-neutral-400 leading-normal">
                   Focused on utility and speed for quick daily entries.
                 </p>
@@ -114,7 +109,7 @@ export default function LandingPage() {
         <div className="container mx-auto px-4 flex flex-col items-center gap-4">
           <div className="flex items-center gap-5">
             <Link
-              href="https://github.com/deddywolley"
+              href="https://github.com/philldev"
               target="_blank"
               rel="noopener noreferrer"
               className="text-neutral-500 hover:text-white transition-colors"
@@ -141,11 +136,18 @@ export default function LandingPage() {
               <span className="sr-only">Website</span>
             </Link>
           </div>
-          
+
           <div className="flex items-center gap-4 text-[10px] text-neutral-500 uppercase tracking-widest">
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy</Link>
+            <Link
+              href="/privacy"
+              className="hover:text-white transition-colors"
+            >
+              Privacy
+            </Link>
             <span className="size-1 rounded-full bg-neutral-800" />
-            <Link href="/terms" className="hover:text-white transition-colors">Terms</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Terms
+            </Link>
           </div>
 
           <p className="text-[10px] text-neutral-500 tracking-wide uppercase">
