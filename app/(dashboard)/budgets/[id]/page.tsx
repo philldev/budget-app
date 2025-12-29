@@ -48,6 +48,7 @@ import { TransactionList } from "@/components/transactions/transaction-list";
 import { DashboardHeader } from "@/components/shared/dashboard-header";
 import { BudgetDetailSkeleton } from "@/components/budgets/budget-detail-skeleton";
 import { Skeleton } from "@/components/ui/skeleton";
+import { AnimatePresence, motion } from "motion/react";
 
 const MONTHS = [
   "January",
@@ -191,170 +192,192 @@ export default function BudgetDetailPage({
     }
   };
 
-  if (isLoadingBudget) {
-    return (
-      <>
-        <DashboardHeader
-          title={<Skeleton className="h-8 w-48 mb-1" />}
-          description={<Skeleton className="h-4 w-64" />}
-          backLink={{ href: "/budgets", label: "Back to Budgets" }}
-        />
-        <BudgetDetailSkeleton />
-      </>
-    );
-  }
-
-  if (isErrorBudget || !budget) {
+  if (isErrorBudget || (!isLoadingBudget && !budget)) {
     return <div className="p-6">Budget not found or failed to load.</div>;
   }
 
   return (
     <>
       <DashboardHeader
-        title={budget.name}
-        description={`${MONTHS[budget.month - 1]} ${budget.year} • Detailed view of your transactions.`}
+        title={
+          isLoadingBudget ? <Skeleton className="h-8 w-48 mb-1" /> : budget.name
+        }
+        description={
+          isLoadingBudget ? (
+            <Skeleton className="h-4 w-64" />
+          ) : (
+            `${MONTHS[budget.month - 1]} ${budget.year} • Detailed view of your transactions.`
+          )
+        }
         backLink={{ href: "/budgets", label: "Back to Budgets" }}
         actions={
-          <div className="flex items-center gap-2">
-            <Button
-              onClick={() => {
-                setEditingTransaction(null);
-                setIsDialogOpen(true);
-              }}
-              size="sm"
-              className="gap-2"
-            >
-              <Plus className="h-4 w-4" /> Add Transaction
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon-sm">
-                  <MoreHorizontal />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-[10rem]">
-                <DropdownMenuLabel>Budget Options</DropdownMenuLabel>
-                <DropdownMenuItem onClick={() => setIsBudgetDialogOpen(true)}>
-                  <Pencil className="mr-2 h-4 w-4" />
-                  Edit Budget
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  className="text-destructive focus:text-destructive"
-                  onClick={() => setIsDeleteBudgetDialogOpen(true)}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Budget
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          !isLoadingBudget && (
+            <div className="flex items-center gap-2">
+              <Button
+                onClick={() => {
+                  setEditingTransaction(null);
+                  setIsDialogOpen(true);
+                }}
+                size="sm"
+                className="gap-2"
+              >
+                <Plus className="h-4 w-4" /> Add Transaction
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon-sm">
+                    <MoreHorizontal />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-[10rem]">
+                  <DropdownMenuLabel>Budget Options</DropdownMenuLabel>
+                  <DropdownMenuItem onClick={() => setIsBudgetDialogOpen(true)}>
+                    <Pencil className="mr-2 h-4 w-4" />
+                    Edit Budget
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    className="text-destructive focus:text-destructive"
+                    onClick={() => setIsDeleteBudgetDialogOpen(true)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete Budget
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          )
         }
       />
 
-      <Card className="bg-muted/40 border-none shadow-none">
-        <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
-          <div className="px-4 flex flex-1 flex-col justify-between gap-6">
-            <div className="flex items-center gap-3">
-              <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
-                <Wallet className="h-8 w-8 text-primary" />
+      <AnimatePresence mode="wait">
+        {isLoadingBudget ? (
+          <motion.div
+            key="skeleton"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+          >
+            <BudgetDetailSkeleton />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="content"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+            className="space-y-4"
+          >
+            <Card className="bg-muted/40 border-none shadow-none">
+              <CardContent className="p-0 flex flex-col md:flex-row items-stretch">
+                <div className="px-4 flex flex-1 flex-col justify-between gap-6">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-background shadow-xs">
+                      <Wallet className="h-8 w-8 text-primary" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] mb-1 uppercase tracking-wider font-bold text-muted-foreground">
+                        Current Balance
+                      </p>
+                      <h2 className="text-2xl font-bold tracking-tight">
+                        Rp {balance.toLocaleString("id-ID")}
+                      </h2>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
+              <div>
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+                  Income
+                </p>
+                <div className="flex items-center gap-1.5 text-emerald-600">
+                  <TrendingUp className="h-3.5 w-3.5" />
+                  <span className="text-sm font-bold">
+                    Rp {totalIncome.toLocaleString("id-ID")}
+                  </span>
+                </div>
               </div>
               <div>
-                <p className="text-[10px] mb-1 uppercase tracking-wider font-bold text-muted-foreground">
-                  Current Balance
+                <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
+                  Expense
                 </p>
-                <h2 className="text-2xl font-bold tracking-tight">
-                  Rp {balance.toLocaleString("id-ID")}
-                </h2>
+                <div className="flex items-center gap-1.5 text-destructive">
+                  <TrendingDown className="h-3.5 w-3.5" />
+                  <span className="text-sm font-bold">
+                    Rp {totalExpense.toLocaleString("id-ID")}
+                  </span>
+                </div>
               </div>
+              {highestExpenseTransaction && (
+                <button
+                  onClick={() =>
+                    scrollToTransaction(highestExpenseTransaction.id)
+                  }
+                  className="text-left group outline-none"
+                >
+                  <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 transition-colors group-hover:text-foreground">
+                    Highest
+                  </p>
+                  <div className="flex items-center gap-1.5 text-destructive leading-none">
+                    <TrendingDown className="h-3.5 w-3.5" />
+                    <span className="text-sm font-bold">
+                      Rp{" "}
+                      {highestExpenseTransaction.amount.toLocaleString("id-ID")}
+                    </span>
+                  </div>
+                  <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
+                    {highestExpenseTransaction.name}
+                  </p>
+                </button>
+              )}
             </div>
-          </div>
-        </CardContent>
-      </Card>
 
-      <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
-        <div>
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
-            Income
-          </p>
-          <div className="flex items-center gap-1.5 text-emerald-600">
-            <TrendingUp className="h-3.5 w-3.5" />
-            <span className="text-sm font-bold">
-              Rp {totalIncome.toLocaleString("id-ID")}
-            </span>
-          </div>
-        </div>
-        <div>
-          <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
-            Expense
-          </p>
-          <div className="flex items-center gap-1.5 text-destructive">
-            <TrendingDown className="h-3.5 w-3.5" />
-            <span className="text-sm font-bold">
-              Rp {totalExpense.toLocaleString("id-ID")}
-            </span>
-          </div>
-        </div>
-        {highestExpenseTransaction && (
-          <button
-            onClick={() => scrollToTransaction(highestExpenseTransaction.id)}
-            className="text-left group outline-none"
-          >
-            <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1 transition-colors group-hover:text-foreground">
-              Highest
-            </p>
-            <div className="flex items-center gap-1.5 text-destructive leading-none">
-              <TrendingDown className="h-3.5 w-3.5" />
-              <span className="text-sm font-bold">
-                Rp {highestExpenseTransaction.amount.toLocaleString("id-ID")}
-              </span>
+            <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
+              <InputGroup className="w-full sm:w-[300px]">
+                <InputGroupAddon>
+                  <Search />
+                </InputGroupAddon>
+                <InputGroupInput
+                  placeholder="Search transactions..."
+                  className="text-xs"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                />
+              </InputGroup>
+              <Select value={sortBy} onValueChange={setSortBy}>
+                <SelectTrigger className="w-full sm:w-fit">
+                  <Filter className="h-4 w-4" />
+                  <SelectValue placeholder="Sort by" />
+                </SelectTrigger>
+                <SelectContent position="popper">
+                  <SelectItem value="date-desc">Newest First</SelectItem>
+                  <SelectItem value="date-asc">Oldest First</SelectItem>
+                  <SelectItem value="amount-desc">Amount: High-Low</SelectItem>
+                  <SelectItem value="amount-asc">Amount: Low-High</SelectItem>
+                  <SelectItem value="name-asc">Name: A-Z</SelectItem>
+                  <SelectItem value="name-desc">Name: Z-A</SelectItem>
+                  <SelectItem value="type-asc">Type: Income First</SelectItem>
+                  <SelectItem value="type-desc">Type: Expense First</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <p className="text-[9px] text-muted-foreground/60 truncate max-w-[100px] mt-0.5 transition-colors group-hover:text-muted-foreground">
-              {highestExpenseTransaction.name}
-            </p>
-          </button>
+
+            <TransactionList
+              transactions={filteredTransactions}
+              isLoading={isLoadingTransactions}
+              totalIncome={totalIncome}
+              totalExpense={totalExpense}
+              highlightedId={highlightedId}
+              onEdit={handleEdit}
+              onDelete={handleDeleteTransactionClick}
+            />
+          </motion.div>
         )}
-      </div>
-
-      <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
-        <InputGroup className="w-full sm:w-[300px]">
-          <InputGroupAddon>
-            <Search />
-          </InputGroupAddon>
-          <InputGroupInput
-            placeholder="Search transactions..."
-            className="text-xs"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </InputGroup>
-        <Select value={sortBy} onValueChange={setSortBy}>
-          <SelectTrigger className="w-full sm:w-fit">
-            <Filter className="h-4 w-4" />
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent position="popper">
-            <SelectItem value="date-desc">Newest First</SelectItem>
-            <SelectItem value="date-asc">Oldest First</SelectItem>
-            <SelectItem value="amount-desc">Amount: High-Low</SelectItem>
-            <SelectItem value="amount-asc">Amount: Low-High</SelectItem>
-            <SelectItem value="name-asc">Name: A-Z</SelectItem>
-            <SelectItem value="name-desc">Name: Z-A</SelectItem>
-            <SelectItem value="type-asc">Type: Income First</SelectItem>
-            <SelectItem value="type-desc">Type: Expense First</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <TransactionList
-        transactions={filteredTransactions}
-        isLoading={isLoadingTransactions}
-        totalIncome={totalIncome}
-        totalExpense={totalExpense}
-        highlightedId={highlightedId}
-        onEdit={handleEdit}
-        onDelete={handleDeleteTransactionClick}
-      />
+      </AnimatePresence>
 
       <TransactionDialog
         open={isDialogOpen}
