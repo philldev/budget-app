@@ -20,9 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field";
 import { useCreateBudget, useUpdateBudget } from "@/lib/hooks/use-budgets";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
 const MONTHS = [
   "January",
@@ -42,6 +45,14 @@ const MONTHS = [
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
+const budgetSchema = z.object({
+  name: z.string().min(1, "Name is required").max(50, "Name is too long"),
+  month: z.coerce.number().min(1).max(12),
+  year: z.coerce.number().min(CURRENT_YEAR - 10).max(CURRENT_YEAR + 10),
+});
+
+type BudgetFormValues = z.infer<typeof budgetSchema>;
+
 interface BudgetDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -56,48 +67,45 @@ export function BudgetDialog({
   const createBudget = useCreateBudget();
   const updateBudget = useUpdateBudget(editingBudget?.id || "");
 
-  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>(
-    {
+  const form = useForm<BudgetFormValues>({
+    resolver: zodResolver(budgetSchema),
+    defaultValues: {
       name: "",
       month: new Date().getMonth() + 1,
       year: new Date().getFullYear(),
     },
-  );
+  });
 
   React.useEffect(() => {
-    if (editingBudget) {
-      setFormData({
-        name: editingBudget.name,
-        month: editingBudget.month,
-        year: editingBudget.year,
-      });
-    } else {
-      setFormData({
-        name: "",
-        month: new Date().getMonth() + 1,
-        year: new Date().getFullYear(),
-      });
+    if (open) {
+      if (editingBudget) {
+        form.reset({
+          name: editingBudget.name,
+          month: editingBudget.month,
+          year: editingBudget.year,
+        });
+      } else {
+        form.reset({
+          name: "",
+          month: new Date().getMonth() + 1,
+          year: new Date().getFullYear(),
+        });
+      }
     }
-  }, [editingBudget, open]);
+  }, [editingBudget, open, form]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: BudgetFormValues) => {
     try {
       if (editingBudget) {
-        await updateBudget.mutateAsync(formData);
+        await updateBudget.mutateAsync(data);
         toast.success("Budget updated successfully!");
       } else {
-        await createBudget.mutateAsync(formData);
+        await createBudget.mutateAsync(data);
         toast.success("Budget created successfully!");
       }
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to save budget:", error);
-      if (editingBudget) {
-        toast.error("Failed to update budget!");
-      } else {
-        toast.error("Failed to create budget!");
-      }
       toast.error("Failed to save budget!");
     }
   };
@@ -117,61 +125,75 @@ export function BudgetDialog({
               : "Add a new budget to your list."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSave}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="py-2">
-            <Field>
-              <FieldLabel htmlFor="b-name">Name</FieldLabel>
-              <Input
-                id="b-name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="e.g. Monthly Expenses"
-                required
-              />
-            </Field>
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="b-name">Name</FieldLabel>
+                  <Input
+                    {...field}
+                    id="b-name"
+                    placeholder="e.g. Monthly Expenses"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
             <div className="grid grid-cols-2 gap-4">
-              <Field>
-                <FieldLabel htmlFor="b-month">Month</FieldLabel>
-                <Select
-                  value={formData.month.toString()}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, month: parseInt(val) })
-                  }
-                >
-                  <SelectTrigger id="b-month">
-                    <SelectValue placeholder="Select month" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MONTHS.map((month, index) => (
-                      <SelectItem key={month} value={(index + 1).toString()}>
-                        {month}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <Field>
-                <FieldLabel htmlFor="b-year">Year</FieldLabel>
-                <Select
-                  value={formData.year.toString()}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, year: parseInt(val) })
-                  }
-                >
-                  <SelectTrigger id="b-year">
-                    <SelectValue placeholder="Select year" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {YEARS.map((year) => (
-                      <SelectItem key={year} value={year.toString()}>
-                        {year}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
+              <Controller
+                name="month"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="b-month">Month</FieldLabel>
+                    <Select
+                      value={field.value.toString()}
+                      onValueChange={(val) => field.onChange(parseInt(val))}
+                    >
+                      <SelectTrigger id="b-month" aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Select month" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {MONTHS.map((month, index) => (
+                          <SelectItem key={month} value={(index + 1).toString()}>
+                            {month}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
+              <Controller
+                name="year"
+                control={form.control}
+                render={({ field, fieldState }) => (
+                  <Field data-invalid={fieldState.invalid}>
+                    <FieldLabel htmlFor="b-year">Year</FieldLabel>
+                    <Select
+                      value={field.value.toString()}
+                      onValueChange={(val) => field.onChange(parseInt(val))}
+                    >
+                      <SelectTrigger id="b-year" aria-invalid={fieldState.invalid}>
+                        <SelectValue placeholder="Select year" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {YEARS.map((year) => (
+                          <SelectItem key={year} value={year.toString()}>
+                            {year}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FieldError errors={[fieldState.error]} />
+                  </Field>
+                )}
+              />
             </div>
           </FieldGroup>
           <DialogFooter className="mt-4">

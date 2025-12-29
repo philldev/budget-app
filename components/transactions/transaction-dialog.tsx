@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
+import { Field, FieldGroup, FieldLabel, FieldError } from "@/components/ui/field";
 import { NumericFormat } from "react-number-format";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -23,6 +23,18 @@ import {
   useUpdateTransaction,
 } from "@/lib/hooks/use-transactions";
 import { toast } from "sonner";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+
+const transactionSchema = z.object({
+  name: z.string().min(1, "Name is required").max(50, "Name is too long"),
+  amount: z.number().min(0.01, "Amount must be greater than 0"),
+  type: z.enum(["income", "expense"]),
+  category: z.string().min(1, "Category is required").max(30, "Category is too long"),
+});
+
+type TransactionFormValues = z.infer<typeof transactionSchema>;
 
 interface TransactionDialogProps {
   open: boolean;
@@ -41,43 +53,46 @@ export function TransactionDialog({
   const updateTransaction = useUpdateTransaction(editingTransaction?.id || "");
 
   const [addAnother, setAddAnother] = React.useState(false);
-  const [formData, setFormData] = React.useState<
-    Omit<Transaction, "id" | "budgetId" | "date">
-  >({
-    name: "",
-    amount: 0,
-    type: "expense",
-    category: "",
+
+  const form = useForm<TransactionFormValues>({
+    resolver: zodResolver(transactionSchema),
+    defaultValues: {
+      name: "",
+      amount: 0,
+      type: "expense",
+      category: "",
+    },
   });
 
   React.useEffect(() => {
-    if (editingTransaction) {
-      setFormData({
-        name: editingTransaction.name,
-        amount: editingTransaction.amount,
-        type: editingTransaction.type,
-        category: editingTransaction.category,
-      });
-    } else {
-      setFormData({
-        name: "",
-        amount: 0,
-        type: "expense",
-        category: "",
-      });
+    if (open) {
+      if (editingTransaction) {
+        form.reset({
+          name: editingTransaction.name,
+          amount: editingTransaction.amount,
+          type: editingTransaction.type,
+          category: editingTransaction.category,
+        });
+      } else {
+        form.reset({
+          name: "",
+          amount: 0,
+          type: "expense",
+          category: "",
+        });
+      }
     }
-  }, [editingTransaction, open]);
+  }, [editingTransaction, open, form]);
 
-  const handleSave = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: TransactionFormValues) => {
     try {
       if (editingTransaction) {
-        await updateTransaction.mutateAsync(formData);
+        await updateTransaction.mutateAsync(data);
         onOpenChange(false);
         toast.success("Transaction updated successfully!");
       } else {
         await createTransaction.mutateAsync({
-          ...formData,
+          ...data,
           budgetId,
           date: new Date().toISOString().split("T")[0],
         });
@@ -86,20 +101,15 @@ export function TransactionDialog({
         if (!addAnother) {
           onOpenChange(false);
         } else {
-          setFormData((prev) => ({
-            ...prev,
+          form.reset({
+            ...data,
             name: "",
             amount: 0,
-          }));
+          });
         }
       }
     } catch (error) {
       console.error("Failed to save transaction:", error);
-      if (editingTransaction) {
-        toast.error("Failed to update transaction!");
-      } else {
-        toast.error("Failed to create transaction!");
-      }
       toast.error("Failed to save transaction!");
     }
   };
@@ -119,76 +129,96 @@ export function TransactionDialog({
               : "Add a new transaction to this budget."}
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSave}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           <FieldGroup className="py-2">
-            <Field>
-              <FieldLabel>Transaction Type</FieldLabel>
-              <ButtonGroup className="w-full">
-                <Button
-                  type="button"
-                  variant={formData.type === "expense" ? "default" : "outline"}
-                  className="flex-1 h-10 gap-2 text-sm"
-                  onClick={() => setFormData({ ...formData, type: "expense" })}
-                >
-                  <TrendingDown className="size-4" />
-                  Expense
-                </Button>
-                <Button
-                  type="button"
-                  variant={formData.type === "income" ? "default" : "outline"}
-                  className="flex-1 h-10 gap-2 text-sm"
-                  onClick={() => setFormData({ ...formData, type: "income" })}
-                >
-                  <TrendingUp className="size-4" />
-                  Income
-                </Button>
-              </ButtonGroup>
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="t-name">Name</FieldLabel>
-              <Input
-                id="t-name"
-                value={formData.name}
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder="e.g. Salary, Groceries"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="t-category">Category</FieldLabel>
-              <Input
-                id="t-category"
-                value={formData.category}
-                onChange={(e) =>
-                  setFormData({ ...formData, category: e.target.value })
-                }
-                placeholder="e.g. Food, Rent, Income"
-                required
-              />
-            </Field>
-            <Field>
-              <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
-              <NumericFormat
-                id="t-amount"
-                customInput={Input}
-                value={formData.amount === 0 ? "" : formData.amount}
-                onValueChange={(values) => {
-                  setFormData({
-                    ...formData,
-                    amount: values.floatValue || 0,
-                  });
-                }}
-                thousandSeparator="."
-                decimalSeparator=","
-                prefix="Rp "
-                placeholder="Rp 0"
-                decimalScale={2}
-                fixedDecimalScale={false}
-                required
-              />
-            </Field>
+            <Controller
+              name="type"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel>Transaction Type</FieldLabel>
+                  <ButtonGroup className="w-full">
+                    <Button
+                      type="button"
+                      variant={field.value === "expense" ? "default" : "outline"}
+                      className="flex-1 h-10 gap-2 text-sm"
+                      onClick={() => field.onChange("expense")}
+                    >
+                      <TrendingDown className="size-4" />
+                      Expense
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={field.value === "income" ? "default" : "outline"}
+                      className="flex-1 h-10 gap-2 text-sm"
+                      onClick={() => field.onChange("income")}
+                    >
+                      <TrendingUp className="size-4" />
+                      Income
+                    </Button>
+                  </ButtonGroup>
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              name="name"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="t-name">Name</FieldLabel>
+                  <Input
+                    {...field}
+                    id="t-name"
+                    placeholder="e.g. Salary, Groceries"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              name="category"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="t-category">Category</FieldLabel>
+                  <Input
+                    {...field}
+                    id="t-category"
+                    placeholder="e.g. Food, Rent, Income"
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
+            <Controller
+              name="amount"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor="t-amount">Amount</FieldLabel>
+                  <NumericFormat
+                    id="t-amount"
+                    customInput={Input}
+                    value={field.value === 0 ? "" : field.value}
+                    onValueChange={(values) => {
+                      field.onChange(values.floatValue || 0);
+                    }}
+                    onBlur={field.onBlur}
+                    thousandSeparator="."
+                    decimalSeparator=","
+                    prefix="Rp "
+                    placeholder="Rp 0"
+                    decimalScale={2}
+                    fixedDecimalScale={false}
+                    aria-invalid={fieldState.invalid}
+                  />
+                  <FieldError errors={[fieldState.error]} />
+                </Field>
+              )}
+            />
           </FieldGroup>
           {!editingTransaction && (
             <div className="flex items-center space-x-2 px-1 mb-4">
