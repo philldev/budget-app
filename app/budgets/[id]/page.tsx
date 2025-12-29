@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   Plus,
   Search,
+  Filter,
   MoreHorizontal,
   Pencil,
   Trash2,
@@ -39,6 +40,13 @@ import {
   InputGroupAddon,
   InputGroupInput,
 } from "@/components/ui/input-group";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import {
@@ -93,6 +101,7 @@ export default function BudgetDetailPage({
   const deleteTransaction = useDeleteTransaction();
 
   const [searchQuery, setSearchQuery] = React.useState("");
+  const [sortBy, setSortBy] = React.useState<string>("date-desc");
   const [isDialogOpen, setIsDialogOpen] = React.useState(false);
   const [isBudgetDialogOpen, setIsBudgetDialogOpen] = React.useState(false);
   const [editingTransaction, setEditingTransaction] =
@@ -132,9 +141,37 @@ export default function BudgetDetailPage({
     }
   };
 
-  const filteredTransactions = transactions.filter((t) =>
-    t.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
+  const filteredTransactions = transactions
+    .filter((t) => t.name.toLowerCase().includes(searchQuery.toLowerCase()))
+    .sort((a, b) => {
+      if (sortBy === "date-desc") {
+        return new Date(b.date).getTime() - new Date(a.date).getTime();
+      }
+      if (sortBy === "date-asc") {
+        return new Date(a.date).getTime() - new Date(b.date).getTime();
+      }
+      if (sortBy === "amount-desc") {
+        return b.amount - a.amount;
+      }
+      if (sortBy === "amount-asc") {
+        return a.amount - b.amount;
+      }
+      if (sortBy === "name-asc") {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === "name-desc") {
+        return b.name.localeCompare(a.name);
+      }
+      if (sortBy === "type-asc") {
+        if (a.type === b.type) return 0;
+        return a.type === "income" ? -1 : 1;
+      }
+      if (sortBy === "type-desc") {
+        if (a.type === b.type) return 0;
+        return a.type === "expense" ? -1 : 1;
+      }
+      return 0;
+    });
 
   // Summary Calculations
   const totalIncome = transactions
@@ -314,6 +351,24 @@ export default function BudgetDetailPage({
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </InputGroup>
+        <Select value={sortBy} onValueChange={setSortBy}>
+          <SelectTrigger className="w-full sm:w-[150px]">
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              <SelectValue placeholder="Sort by" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="date-desc">Newest First</SelectItem>
+            <SelectItem value="date-asc">Oldest First</SelectItem>
+            <SelectItem value="amount-desc">Amount: High-Low</SelectItem>
+            <SelectItem value="amount-asc">Amount: Low-High</SelectItem>
+            <SelectItem value="name-asc">Name: A-Z</SelectItem>
+            <SelectItem value="name-desc">Name: Z-A</SelectItem>
+            <SelectItem value="type-asc">Type: Income First</SelectItem>
+            <SelectItem value="type-desc">Type: Expense First</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {isLoadingTransactions ? (

@@ -83,6 +83,7 @@ export default function BudgetsPage() {
   const [budgetToDelete, setBudgetToDelete] = React.useState<string | null>(null);
 
   const [filterYear, setFilterYear] = React.useState<string>("all");
+  const [sortBy, setSortBy] = React.useState<string>("date-desc");
 
   const handleEdit = (budget: Budget) => {
     setEditingBudget(budget);
@@ -104,14 +105,32 @@ export default function BudgetsPage() {
     }
   };
 
-  const filteredBudgets = budgets.filter((budget) => {
-    const matchesSearch = budget.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    const matchesYear =
-      filterYear === "all" || budget.year.toString() === filterYear;
-    return matchesSearch && matchesYear;
-  });
+  const filteredBudgets = budgets
+    .filter((budget) => {
+      const matchesSearch = budget.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
+      const matchesYear =
+        filterYear === "all" || budget.year.toString() === filterYear;
+      return matchesSearch && matchesYear;
+    })
+    .sort((a, b) => {
+      if (sortBy === "date-desc") {
+        if (a.year !== b.year) return b.year - a.year;
+        return b.month - a.month;
+      }
+      if (sortBy === "date-asc") {
+        if (a.year !== b.year) return a.year - b.year;
+        return a.month - b.month;
+      }
+      if (sortBy === "name-asc") {
+        return a.name.localeCompare(b.name);
+      }
+      if (sortBy === "name-desc") {
+        return b.name.localeCompare(a.name);
+      }
+      return 0;
+    });
 
   return (
     <div className="container mx-auto p-6 space-y-4 max-w-5xl">
@@ -149,22 +168,38 @@ export default function BudgetsPage() {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </InputGroup>
-        <Select value={filterYear} onValueChange={setFilterYear}>
-          <SelectTrigger className="w-full sm:w-[120px]">
-            <div className="flex items-center gap-2">
-              <Filter className="h-4 w-4" />
-              <SelectValue placeholder="Year" />
-            </div>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Years</SelectItem>
-            {YEARS.map((year) => (
-              <SelectItem key={year} value={year.toString()}>
-                {year}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2 w-full sm:w-auto">
+          <Select value={filterYear} onValueChange={setFilterYear}>
+            <SelectTrigger className="w-full sm:w-[120px]">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <SelectValue placeholder="Year" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Years</SelectItem>
+              {YEARS.map((year) => (
+                <SelectItem key={year} value={year.toString()}>
+                  {year}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={sortBy} onValueChange={setSortBy}>
+            <SelectTrigger className="w-full sm:w-[150px]">
+              <div className="flex items-center gap-2">
+                <Filter className="h-4 w-4" />
+                <SelectValue placeholder="Sort by" />
+              </div>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="date-desc">Newest First</SelectItem>
+              <SelectItem value="date-asc">Oldest First</SelectItem>
+              <SelectItem value="name-asc">Name: A-Z</SelectItem>
+              <SelectItem value="name-desc">Name: Z-A</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading ? (
