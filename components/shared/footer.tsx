@@ -1,41 +1,65 @@
 "use client";
 
 import Link from "next/link";
-import { Github, Twitter } from "lucide-react";
-import { Separator } from "../ui/separator";
+import { SiGithub, SiX } from "react-icons/si";
+import { FaGlobe } from "react-icons/fa6";
 
 export function Footer() {
   return (
-    <footer className="w-full border-t border-border/40 py-4 mt-auto">
-      <div className="container mx-auto max-w-xl px-6">
+    <footer className="w-full border-t border-white/5 py-6 relative z-10">
+      <div className="container mx-auto px-6 max-w-lg">
         <div className="flex flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <Link
               href="/"
               className="text-xs tracking-tight text-muted-foreground"
             >
               BudgetApp
             </Link>
-            <Separator orientation="vertical" className="h-4 bg-muted" />
+            <Link
+              href="https://github.com/philldev"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-500 hover:text-white transition-colors"
+            >
+              <SiGithub className="size-3.5" />
+              <span className="sr-only">GitHub</span>
+            </Link>
+            <Link
+              href="https://twitter.com/deddywolley"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-500 hover:text-white transition-colors"
+            >
+              <SiX className="size-3" />
+              <span className="sr-only">Twitter</span>
+            </Link>
             <Link
               href="https://deddywolley.com"
-              className="text-xs tracking-tight text-muted-foreground"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-neutral-500 hover:text-white transition-colors"
             >
-              deddywolley.com
+              <FaGlobe className="size-3.5" />
+              <span className="sr-only">Website</span>
             </Link>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3 text-[9px] text-neutral-500 uppercase tracking-widest font-medium">
             <Link
-              href="https://github.com/philldev/budget-app"
-              target="_blank"
-              rel="noreferrer"
-              className="p-1.5 rounded-md hover:bg-muted transition-colors"
+              href="/privacy"
+              className="hover:text-white transition-colors"
             >
-              <Github className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
-              <span className="sr-only">GitHub</span>
+              Privacy
+            </Link>
+            <Link href="/terms" className="hover:text-white transition-colors">
+              Terms
             </Link>
           </div>
+
+          <p className="text-[9px] text-neutral-600 tracking-tight font-medium uppercase">
+            &copy; {new Date().getFullYear()}
+          </p>
         </div>
       </div>
     </footer>
