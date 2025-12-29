@@ -200,14 +200,14 @@ export default function BudgetDetailPage({
     <>
       <DashboardHeader
         title={
-          isLoadingBudget ? <Skeleton className="h-8 w-48 mb-1" /> : budget.name
+          isLoadingBudget ? <Skeleton className="h-8 w-48 mb-1" /> : budget?.name
         }
         description={
           isLoadingBudget ? (
             <Skeleton className="h-4 w-64" />
-          ) : (
+          ) : budget ? (
             `${MONTHS[budget.month - 1]} ${budget.year} • Detailed view of your transactions.`
-          )
+          ) : null
         }
         backLink={{ href: "/budgets", label: "Back to Budgets" }}
         actions={

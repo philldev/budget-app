@@ -8,7 +8,6 @@ import { SignInButton } from "@/components/auth/auth-buttons";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { AnimatePresence, motion } from "motion/react";
-import { BackgroundBeams } from "@/components/ui/background-beams";
 
 export default function LandingPage() {
   const { data: session, isPending } = authClient.useSession();

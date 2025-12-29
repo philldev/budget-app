@@ -57,7 +57,7 @@ export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ id, budgetId }: { id: string; budgetId: string }) => {
+    mutationFn: async ({ id }: { id: string; budgetId: string }) => {
       const response = await fetch(`/api/transactions/${id}`, {
         method: "DELETE",
       });

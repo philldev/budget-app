@@ -47,8 +47,8 @@ const YEARS = Array.from({ length: 5 }, (_, i) => CURRENT_YEAR - 2 + i);
 
 const budgetSchema = z.object({
   name: z.string().min(1, "Name is required").max(50, "Name is too long"),
-  month: z.coerce.number().min(1).max(12),
-  year: z.coerce.number().min(CURRENT_YEAR - 10).max(CURRENT_YEAR + 10),
+  month: z.number().min(1).max(12),
+  year: z.number().min(CURRENT_YEAR - 10).max(CURRENT_YEAR + 10),
 });
 
 type BudgetFormValues = z.infer<typeof budgetSchema>;
