@@ -40,7 +40,7 @@ export function DashboardHeader({
         <div>
           <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
           {description && (
-            <p className="text-muted-foreground text-xs">{description}</p>
+            <div className="text-muted-foreground text-xs">{description}</div>
           )}
         </div>
         <div className="flex items-center gap-2">

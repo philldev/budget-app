@@ -47,6 +47,7 @@ A modern budget tracking application built with Next.js, focused on providing a 
 
 ## Gemini Instructions
 - **STRICTLY** use `bun` for all package management and script execution. NEVER use `npm`, `yarn`, or `npx`.
+- **DO NOT** modify any code or files that were created or updated by the user unless explicitly requested to do so.
 - When adding new features, prioritize using existing shadcn/ui components or adding new ones from the registry if needed.
 - **NEVER** update shadcn component files (located in `components/ui/`) unless explicitly requested by the user.
 - **Database Changes:** Always update `lib/db/schema.ts` and run `bunx drizzle-kit push` to sync changes.

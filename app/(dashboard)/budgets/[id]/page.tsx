@@ -41,12 +41,13 @@ import {
   useGetTransactions,
   useDeleteTransaction,
 } from "@/lib/hooks/use-transactions";
-import { Loader2 } from "lucide-react";
 import { BudgetDialog } from "@/components/budgets/budget-dialog";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
 import { TransactionList } from "@/components/transactions/transaction-list";
 import { DashboardHeader } from "@/components/shared/dashboard-header";
+import { BudgetDetailSkeleton } from "@/components/budgets/budget-detail-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const MONTHS = [
   "January",
@@ -192,9 +193,14 @@ export default function BudgetDetailPage({
 
   if (isLoadingBudget) {
     return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <>
+        <DashboardHeader
+          title={<Skeleton className="h-8 w-48 mb-1" />}
+          description={<Skeleton className="h-4 w-64" />}
+          backLink={{ href: "/budgets", label: "Back to Budgets" }}
+        />
+        <BudgetDetailSkeleton />
+      </>
     );
   }
 

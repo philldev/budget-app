@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Loader2, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
+import { MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 import { Transaction } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { TransactionIcon } from "./transaction-icon";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -32,6 +33,7 @@ interface TransactionListProps {
   highlightedId: string | null;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  loadingItems?: number;
 }
 
 export function TransactionList({
@@ -42,12 +44,28 @@ export function TransactionList({
   highlightedId,
   onEdit,
   onDelete,
+  loadingItems = 5,
 }: TransactionListProps) {
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-      </div>
+      <ItemGroup>
+        {Array.from({ length: loadingItems }).map((_, i) => (
+          <Item key={i} variant="outline" size="xs" className="justify-between">
+            <ItemMedia>
+              <Skeleton className="h-9 w-9 rounded-lg" />
+            </ItemMedia>
+            <ItemContent>
+              <div className="space-y-1">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-3 w-20" />
+              </div>
+            </ItemContent>
+            <div className="flex flex-col items-end mr-4">
+              <Skeleton className="h-5 w-24" />
+            </div>
+          </Item>
+        ))}
+      </ItemGroup>
     );
   }
 
