@@ -22,6 +22,7 @@ import {
   useCreateTransaction,
   useUpdateTransaction,
 } from "@/lib/hooks/use-transactions";
+import { toast } from "sonner";
 
 interface TransactionDialogProps {
   open: boolean;
@@ -73,12 +74,14 @@ export function TransactionDialog({
       if (editingTransaction) {
         await updateTransaction.mutateAsync(formData);
         onOpenChange(false);
+        toast.success("Transaction updated successfully!");
       } else {
         await createTransaction.mutateAsync({
           ...formData,
           budgetId,
           date: new Date().toISOString().split("T")[0],
         });
+        toast.success("Transaction created successfully!");
 
         if (!addAnother) {
           onOpenChange(false);
@@ -92,6 +95,12 @@ export function TransactionDialog({
       }
     } catch (error) {
       console.error("Failed to save transaction:", error);
+      if (editingTransaction) {
+        toast.error("Failed to update transaction!");
+      } else {
+        toast.error("Failed to create transaction!");
+      }
+      toast.error("Failed to save transaction!");
     }
   };
 

@@ -13,6 +13,7 @@ import {
   AlertDialogMedia,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 interface DeleteConfirmDialogProps {
   open: boolean;
@@ -33,7 +34,13 @@ export function DeleteConfirmDialog({
 }: DeleteConfirmDialogProps) {
   const handleConfirm = async (e: React.MouseEvent) => {
     e.preventDefault();
-    await onConfirm();
+    try {
+      await onConfirm();
+      toast.success("Item deleted successfully!");
+    } catch (error) {
+      console.error("Failed to delete item:", error);
+      toast.error("Failed to delete item!");
+    }
     onOpenChange(false);
   };
 

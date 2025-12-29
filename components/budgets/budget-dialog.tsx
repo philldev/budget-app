@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/select";
 import { Field, FieldGroup, FieldLabel } from "@/components/ui/field";
 import { useCreateBudget, useUpdateBudget } from "@/lib/hooks/use-budgets";
+import { toast } from "sonner";
 
 const MONTHS = [
   "January",
@@ -55,11 +56,13 @@ export function BudgetDialog({
   const createBudget = useCreateBudget();
   const updateBudget = useUpdateBudget(editingBudget?.id || "");
 
-  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>({
-    name: "",
-    month: new Date().getMonth() + 1,
-    year: new Date().getFullYear(),
-  });
+  const [formData, setFormData] = React.useState<Omit<Budget, "id" | "userId">>(
+    {
+      name: "",
+      month: new Date().getMonth() + 1,
+      year: new Date().getFullYear(),
+    },
+  );
 
   React.useEffect(() => {
     if (editingBudget) {
@@ -82,12 +85,20 @@ export function BudgetDialog({
     try {
       if (editingBudget) {
         await updateBudget.mutateAsync(formData);
+        toast.success("Budget updated successfully!");
       } else {
         await createBudget.mutateAsync(formData);
+        toast.success("Budget created successfully!");
       }
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to save budget:", error);
+      if (editingBudget) {
+        toast.error("Failed to update budget!");
+      } else {
+        toast.error("Failed to create budget!");
+      }
+      toast.error("Failed to save budget!");
     }
   };
 

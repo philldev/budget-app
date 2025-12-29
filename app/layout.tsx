@@ -19,8 +19,15 @@ export const metadata: Metadata = {
     default: "BudgetApp | Personal Finance Management",
     template: "%s | BudgetApp",
   },
-  description: "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
-  keywords: ["budget tracking", "personal finance", "finance app", "expense tracker", "minimalist budget"],
+  description:
+    "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
+  keywords: [
+    "budget tracking",
+    "personal finance",
+    "finance app",
+    "expense tracker",
+    "minimalist budget",
+  ],
   authors: [{ name: "Deddy Wolley", url: "https://deddywolley.com" }],
   creator: "Deddy Wolley",
   openGraph: {
@@ -28,13 +35,15 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: "https://budget-app.deddywolley.com",
     title: "BudgetApp | Personal Finance Management",
-    description: "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
+    description:
+      "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
     siteName: "BudgetApp",
   },
   twitter: {
     card: "summary_large_image",
     title: "BudgetApp | Personal Finance Management",
-    description: "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
+    description:
+      "A minimalist, high-density tool for personal finance management. Track your budgets and transactions with ease.",
     creator: "@deddywolley",
   },
   robots: {
@@ -49,6 +58,7 @@ export const metadata: Metadata = {
 };
 
 import { QueryProvider } from "@/components/providers/query-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 export default function RootLayout({
   children,
@@ -65,6 +75,7 @@ export default function RootLayout({
             <main className="flex-1">{children}</main>
           </div>
         </QueryProvider>
+        <Toaster />
       </body>
     </html>
   );
