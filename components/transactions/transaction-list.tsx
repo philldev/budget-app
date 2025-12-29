@@ -24,6 +24,7 @@ import {
 import { cn } from "@/lib/utils";
 import { TransactionIcon } from "./transaction-icon";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "../ui/badge";
 
 interface TransactionListProps {
   transactions: Transaction[];
@@ -98,11 +99,18 @@ export function TransactionList({
             )}
           >
             <ItemMedia>
-              <TransactionIcon type={transaction.type} percentage={percentage} />
+              <TransactionIcon
+                type={transaction.type}
+                percentage={percentage}
+              />
             </ItemMedia>
             <ItemContent>
               <ItemTitle>{transaction.name}</ItemTitle>
-              <ItemDescription>{transaction.category}</ItemDescription>
+              <ItemDescription>
+                <Badge className="h-4 text-[0.6rem]" variant="secondary">
+                  {transaction.category}
+                </Badge>
+              </ItemDescription>
             </ItemContent>
             <div className="flex flex-col items-end mr-4">
               <span

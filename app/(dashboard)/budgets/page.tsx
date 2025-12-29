@@ -165,6 +165,7 @@ export default function BudgetsPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3 }}
+            className="flex flex-col gap-4"
           >
             <div className="flex flex-col sm:flex-row gap-2 justify-between items-start sm:items-center">
               <InputGroup className="w-full sm:w-[300px]">

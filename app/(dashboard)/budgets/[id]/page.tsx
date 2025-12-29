@@ -289,7 +289,7 @@ export default function BudgetDetailPage({
               </CardContent>
             </Card>
 
-            <div className="flex flex-wrap items-start gap-x-8 gap-y-2">
+            <div className="flex flex-wrap items-stretch gap-x-8 gap-y-2 py-4">
               <div>
                 <p className="text-[10px] uppercase tracking-wider font-semibold text-muted-foreground mb-1">
                   Income
