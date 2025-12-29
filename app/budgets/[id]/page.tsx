@@ -18,15 +18,6 @@ import {
 import { Transaction } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import {
-  Item,
-  ItemGroup,
-  ItemContent,
-  ItemTitle,
-  ItemDescription,
-  ItemActions,
-  ItemMedia,
-} from "@/components/ui/item";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -47,8 +38,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
-import { cn } from "@/lib/utils";
 import { useGetBudget, useDeleteBudget } from "@/lib/hooks/use-budgets";
 import {
   useGetTransactions,
@@ -60,6 +49,7 @@ import { UserNav } from "@/components/auth/user-nav";
 import { BudgetDialog } from "@/components/budgets/budget-dialog";
 import { TransactionDialog } from "@/components/transactions/transaction-dialog";
 import { DeleteConfirmDialog } from "@/components/shared/delete-confirm-dialog";
+import { TransactionList } from "@/components/transactions/transaction-list";
 
 const MONTHS = [
   "January",
@@ -366,149 +356,15 @@ export default function BudgetDetailPage({
         </Select>
       </div>
 
-      {isLoadingTransactions ? (
-        <div className="flex items-center justify-center py-20">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
-        </div>
-      ) : filteredTransactions.length === 0 ? (
-        <div className="text-center py-10 text-muted-foreground text-sm border rounded-md border-dashed">
-          No transactions found.
-        </div>
-      ) : (
-        <ItemGroup>
-          {filteredTransactions.map((transaction) => {
-            const totalForType =
-              transaction.type === "income" ? totalIncome : totalExpense;
-            const percentage =
-              totalForType > 0 ? (transaction.amount / totalForType) * 100 : 0;
-
-            const width = 28;
-            const height = 28;
-            const rx = 8;
-            const perimeter =
-              2 * (width - 2 * rx) + 2 * (height - 2 * rx) + 2 * Math.PI * rx;
-            const offset = perimeter - (percentage / 100) * perimeter;
-
-            return (
-              <Item
-                key={transaction.id}
-                id={`transaction-${transaction.id}`}
-                variant="outline"
-                size="xs"
-                className={cn(
-                  "justify-between transition-all duration-500",
-                  highlightedId === transaction.id &&
-                    "bg-destructive/10 ring-2 ring-destructive/50 border-destructive/50",
-                )}
-              >
-                <ItemMedia>
-                  <div className="relative flex items-center justify-center p-1">
-                    <svg
-                      className="absolute transition-all duration-500"
-                      width="30"
-                      height="30"
-                      viewBox="0 0 30 30"
-                    >
-                      <rect
-                        x="1"
-                        y="1"
-                        width={width}
-                        height={height}
-                        rx={rx}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        className="text-muted/10"
-                      />
-                      <rect
-                        x="1"
-                        y="1"
-                        width={width}
-                        height={height}
-                        rx={rx}
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                        strokeDasharray={perimeter}
-                        style={{
-                          strokeDashoffset: offset,
-                          transformOrigin: "center",
-                          transform: "rotate(-90deg)",
-                        }}
-                        className={cn(
-                          "transition-all duration-1000 ease-in-out",
-                          transaction.type === "income"
-                            ? "text-emerald-500"
-                            : "text-destructive",
-                        )}
-                      />
-                    </svg>
-                    <div
-                      className={cn(
-                        "flex h-7 w-7 items-center justify-center rounded-lg z-10",
-                        transaction.type === "income"
-                          ? "bg-emerald-500/10"
-                          : "bg-destructive/10",
-                      )}
-                    >
-                      {transaction.type === "income" ? (
-                        <TrendingUp className="h-4 w-4 text-emerald-600" />
-                      ) : (
-                        <TrendingDown className="h-4 w-4 text-destructive" />
-                      )}
-                    </div>
-                  </div>
-                </ItemMedia>
-                <ItemContent>
-                  <ItemTitle>{transaction.name}</ItemTitle>
-                  <ItemDescription>{transaction.category}</ItemDescription>
-                </ItemContent>
-                <div className="flex flex-col items-end mr-4">
-                  <span
-                    className={cn(
-                      "text-sm font-semibold",
-                      transaction.type === "income"
-                        ? "text-emerald-600"
-                        : "text-destructive",
-                    )}
-                  >
-                    {transaction.type === "income" ? "+" : "-"}Rp
-                    {transaction.amount.toLocaleString("id-ID")}
-                  </span>
-                </div>
-
-                <ItemActions>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="icon-sm">
-                        <span className="sr-only">Open menu</span>
-                        <MoreHorizontal />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem onClick={() => handleEdit(transaction)}>
-                        <Pencil className="mr-2 h-4 w-4" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        className="text-destructive focus:text-destructive"
-                        onClick={() =>
-                          handleDeleteTransactionClick(transaction.id)
-                        }
-                      >
-                        <Trash2 className="mr-2 h-4 w-4" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </ItemActions>
-              </Item>
-            );
-          })}
-        </ItemGroup>
-      )}
+      <TransactionList
+        transactions={filteredTransactions}
+        isLoading={isLoadingTransactions}
+        totalIncome={totalIncome}
+        totalExpense={totalExpense}
+        highlightedId={highlightedId}
+        onEdit={handleEdit}
+        onDelete={handleDeleteTransactionClick}
+      />
 
       <TransactionDialog
         open={isDialogOpen}
